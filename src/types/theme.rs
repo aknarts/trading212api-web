@@ -1,4 +1,5 @@
-use std::sync::{RwLock};
+use std::sync::RwLock;
+
 use gloo_storage::{LocalStorage, Storage};
 use lazy_static::lazy_static;
 use tracing::{debug, error};
@@ -25,7 +26,6 @@ impl yew::Reducible for Theme {
     }
 }
 
-
 impl Theme {
     pub fn set_dark(&self, dark: bool) {
         LocalStorage::set(DARK_KEY, Some(dark)).expect("failed to set");
@@ -40,20 +40,20 @@ impl Theme {
     }
 
     pub fn get_dark(&self) -> bool {
-        match DARK.read() {
-            Ok(r) => {
+        match DARK.write() {
+            Ok(mut r) => {
                 debug!("Dark: {:?}", r);
                 match r.clone() {
                     None => {
-                        self.set_dark(true);
+                        *r = Some(true);
+                        debug!("Here");
                         true
                     }
-                    Some(d) => { d }
+                    Some(d) => d,
                 }
             }
             Err(e) => {
                 error!("Error getting dark: {:?}", e);
-                self.set_dark(true);
                 true
             }
         }

@@ -5,16 +5,17 @@ use lazy_static::lazy_static;
 use tracing::{debug, error};
 
 use crate::TOKEN_KEY;
+use crate::types::auth::Token;
 
 lazy_static! {
-    pub static ref TOKEN: RwLock<Option<String>> = {
+    pub static ref TOKEN: RwLock<Option<Token>> = {
         LocalStorage::get(TOKEN_KEY)
             .map_or_else(|_| RwLock::new(None), |token| RwLock::new(Some(token)))
     };
 }
 
 /// Set jwt token to local storage.
-pub fn set_token(token: Option<String>) {
+pub fn set_token(token: Option<Token>) {
     token.clone().map_or_else(
         || {
             LocalStorage::delete(TOKEN_KEY);
@@ -34,12 +35,9 @@ pub fn set_token(token: Option<String>) {
 }
 
 /// Get jwt token from lazy static.
-pub fn get_token() -> Option<String> {
+pub fn get_token() -> Option<Token> {
     match TOKEN.read() {
-        Ok(t) => {
-            debug!("Token: {:?}", t);
-            t.clone()
-        }
+        Ok(t) => t.clone(),
         Err(e) => {
             error!("Error getting token: {:?}", e);
             None

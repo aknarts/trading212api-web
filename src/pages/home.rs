@@ -13,7 +13,9 @@ pub fn home() -> Html {
             <h1 class="title is-1">{ "Welcome..." }</h1>
             {
                 if get_token().is_some() {
-                    has_token_view()
+                    html!(
+                        <crate::pages::dashboard::Dashboard />
+                    )
                 } else {
                     html!(
                         <crate::pages::token::no_token::NoToken />

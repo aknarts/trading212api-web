@@ -1,6 +1,9 @@
 use std::fmt;
 use std::ops::Deref;
 
+use tracing::error;
+use trading212::{Client, Target};
+use trading212::error::Error;
 use yew::{hook, use_context, use_state, UseStateHandle};
 use yew_hooks::use_local_storage;
 use yew_router::hooks::use_navigator;
@@ -8,7 +11,7 @@ use yew_router::navigator::Navigator;
 
 use crate::services::requests::set_token;
 use crate::TOKEN_KEY;
-use crate::types::auth::UserInfo;
+use crate::types::auth::{Token, UserInfo};
 
 /// State handle for the [`use_user_context`] hook.
 pub struct Handle {
@@ -23,18 +26,31 @@ impl Handle {
 
     pub fn logout(&self) {
         // Clear global token after logged out
-        self.inner.set(UserInfo { token: None });
+        self.inner.set(UserInfo {
+            token: None,
+            client: None,
+        });
         set_token(None);
         // Redirect to home page
         self.history.push(&crate::app::Route::Logout);
     }
 
-    pub fn login(&self, token: String) {
-        // Clear global token after logged out
+    pub fn client(&self) -> Option<Client> {
+        self.inner.client.clone()
+    }
+
+    pub fn login(&self, token: String, live: bool) {
+        let client = trading212::Client::new(&token, trading212::Target::Live).unwrap();
+        let t = Token {
+            target: if live { Target::Live } else { Target::Demo },
+            token,
+        };
         self.inner.set(UserInfo {
-            token: Some(token.clone()),
+            token: Some(t.clone()),
+            client: Some(client),
         });
-        set_token(Some(token));
+
+        set_token(Some(t.clone()));
         // Redirect to home page
         self.history.push(&crate::app::Route::Home);
     }
@@ -83,10 +99,23 @@ pub fn use_user_context() -> Handle {
 #[hook]
 /// This hook is used to manage user context.
 pub fn use_refresh_user_context() -> UseStateHandle<UserInfo> {
-    let storage = use_local_storage::<String>(TOKEN_KEY.to_string());
+    let storage = use_local_storage::<Token>(TOKEN_KEY.to_string());
+    let token: Option<Token> = (&*storage).clone();
+    let client = match token.clone() {
+        None => None,
+        Some(t) => match Client::new(&t.token, t.target) {
+            Ok(c) => Some(c),
+            Err(e) => {
+                error!("Error creating client: {:?}", e);
+                None
+            }
+        },
+    };
+
     #[allow(clippy::or_fun_call)]
     let user_ctx = use_context::<UseStateHandle<UserInfo>>().unwrap_or(use_state(|| UserInfo {
-        token: (&*storage).clone(),
+        token: token.clone(),
+        client,
     }));
 
     user_ctx
