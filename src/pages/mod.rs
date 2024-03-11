@@ -1,4 +1,6 @@
-pub mod home;
-pub mod page_not_found;
+mod dashboard;
 pub mod header;
-mod token;
+pub mod home;
+pub mod logout;
+pub mod page_not_found;
+pub(crate) mod token;

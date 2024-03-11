@@ -1,14 +1,15 @@
-use std::sync::{LockResult, RwLock};
+use std::sync::RwLock;
+
 use gloo_storage::{LocalStorage, Storage};
 use lazy_static::lazy_static;
 use tracing::{debug, error};
 
-const TOKEN_KEY: &str = "token.trading212api.self";
+use crate::TOKEN_KEY;
 
 lazy_static! {
-    /// Jwt token read from local storage.
     pub static ref TOKEN: RwLock<Option<String>> = {
-        LocalStorage::get(TOKEN_KEY).map_or_else(|_| RwLock::new(None), |token| RwLock::new(Some(token)))
+        LocalStorage::get(TOKEN_KEY)
+            .map_or_else(|_| RwLock::new(None), |token| RwLock::new(Some(token)))
     };
 }
 
@@ -22,8 +23,7 @@ pub fn set_token(token: Option<String>) {
             LocalStorage::set(TOKEN_KEY, t).expect("failed to set");
         },
     );
-    let mut token_lock = TOKEN.write();
-    match token_lock {
+    match TOKEN.write() {
         Ok(mut t) => {
             *t = token;
         }
@@ -35,8 +35,7 @@ pub fn set_token(token: Option<String>) {
 
 /// Get jwt token from lazy static.
 pub fn get_token() -> Option<String> {
-    let token_lock = TOKEN.read();
-    match token_lock {
+    match TOKEN.read() {
         Ok(t) => {
             debug!("Token: {:?}", t);
             t.clone()

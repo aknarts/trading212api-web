@@ -1,0 +1,66 @@
+use std::sync::{RwLock};
+use gloo_storage::{LocalStorage, Storage};
+use lazy_static::lazy_static;
+use tracing::{debug, error};
+
+const DARK_KEY: &str = "theme.trading212api.self";
+
+lazy_static! {
+    /// Jwt token read from local storage.
+    pub static ref DARK: RwLock<Option<bool>> = {
+        LocalStorage::get(DARK_KEY).map_or_else(|_| RwLock::new(None), |dark| RwLock::new(Some(dark)))
+    };
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub(crate) struct Theme {
+    pub dark: bool,
+}
+
+impl yew::Reducible for Theme {
+    type Action = bool;
+
+    fn reduce(self: std::rc::Rc<Self>, action: Self::Action) -> std::rc::Rc<Self> {
+        Theme { dark: action }.into()
+    }
+}
+
+
+impl Theme {
+    pub fn set_dark(&self, dark: bool) {
+        LocalStorage::set(DARK_KEY, Some(dark)).expect("failed to set");
+        match DARK.write() {
+            Ok(mut w) => {
+                *w = Some(dark);
+            }
+            Err(e) => {
+                error!("Error setting dark: {:?}", e);
+            }
+        }
+    }
+
+    pub fn get_dark(&self) -> bool {
+        match DARK.read() {
+            Ok(r) => {
+                debug!("Dark: {:?}", r);
+                match r.clone() {
+                    None => {
+                        self.set_dark(true);
+                        true
+                    }
+                    Some(d) => { d }
+                }
+            }
+            Err(e) => {
+                error!("Error getting dark: {:?}", e);
+                self.set_dark(true);
+                true
+            }
+        }
+    }
+
+    pub fn toggle_dark(&self) {
+        let dark = !self.get_dark();
+        self.set_dark(dark);
+    }
+}
