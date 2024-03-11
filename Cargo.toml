@@ -11,4 +11,11 @@ categories = ["gui", "wasm", "web-programming"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
-yew = { version= "0.21.0", features=["csr"] }
+console_error_panic_hook = "0.1"
+gloo-storage = "0.3"
+serde = { version = "1" }
+tracing = "0.1"
+tracing-wasm = "0.2"
+yew = { version = "0.21.0", features = ["csr"] }
+yew-router = "0.18"
+lazy_static = "1.4"
