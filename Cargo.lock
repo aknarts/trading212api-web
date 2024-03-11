@@ -1076,6 +1076,7 @@ dependencies = [
  "serde",
  "tracing",
  "tracing-wasm",
+ "web-sys",
  "yew",
  "yew-router",
 ]

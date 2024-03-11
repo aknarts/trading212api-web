@@ -12,17 +12,15 @@ pub fn home() -> Html {
                         if get_token().is_some() {
                             has_token_view()
                         } else {
-                            no_token_view()
+                            html!(
+                                <crate::pages::token::no_token::NoToken />
+                            )
                         }
                     }
                 </div>
             </div>
         </div>
     )
-}
-
-fn no_token_view() -> Html {
-    html!( <h2> {"No Token"}</h2> )
 }
 
 fn has_token_view() -> Html {

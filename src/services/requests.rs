@@ -3,7 +3,6 @@ use gloo_storage::{LocalStorage, Storage};
 use lazy_static::lazy_static;
 use tracing::{debug, error};
 
-pub const API_ROOT: &str = "http://localhost:8081/";
 const TOKEN_KEY: &str = "token.trading212api.self";
 
 lazy_static! {

@@ -1,8 +1,6 @@
 //! User context provider.
 use crate::types::auth::UserInfo;
 use yew::prelude::*;
-use gloo_storage::{LocalStorage, Storage};
-use tracing::warn;
 
 #[derive(Properties, Clone, PartialEq)]
 pub struct Props {
