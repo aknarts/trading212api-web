@@ -17,7 +17,7 @@ gloo-storage = "0.3"
 serde = { version = "1" }
 tracing = "0.1"
 tracing-wasm = "0.2"
-trading212 = { path = "../trading212-rs" }
+trading212 = { version = "0.1" }
 yew = { version = "0.21.0", features = ["csr"] }
 yew-hooks = "0.3"
 yew-router = "0.18"

@@ -3,15 +3,14 @@ use std::ops::Deref;
 
 use tracing::error;
 use trading212::{Client, Target};
-use trading212::error::Error;
 use yew::{hook, use_context, use_state, UseStateHandle};
 use yew_hooks::use_local_storage;
 use yew_router::hooks::use_navigator;
 use yew_router::navigator::Navigator;
 
 use crate::services::requests::set_token;
-use crate::TOKEN_KEY;
 use crate::types::auth::{Token, UserInfo};
+use crate::TOKEN_KEY;
 
 /// State handle for the [`use_user_context`] hook.
 pub struct Handle {
