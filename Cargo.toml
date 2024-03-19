@@ -14,12 +14,16 @@ categories = ["gui", "wasm", "web-programming"]
 console_error_panic_hook = "0.1"
 derivative = "2.2"
 gloo-storage = "0.3"
+rust_decimal = "1.34"
+rusty-money = "0.4"
 serde = { version = "1" }
+time = { version = "0.3", features = ["wasm-bindgen"] }
 tracing = "0.1"
 tracing-wasm = "0.2"
 trading212 = { version = "0.1" }
 yew = { version = "0.21.0", features = ["csr"] }
 yew-hooks = "0.3"
 yew-router = "0.18"
+wasm-bindgen-futures = "0.4"
 web-sys = { version = "0.3", features = ["HtmlInputElement", "Document", "Window"] }
 lazy_static = "1.4"

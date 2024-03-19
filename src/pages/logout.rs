@@ -1,9 +1,13 @@
-use yew::{function_component, html, Html};
+use yew::{function_component, html, Html, use_context, UseReducerHandle};
 use yew_hooks::use_timeout;
+
+use crate::types::data::APIData;
 
 #[function_component(Logout)]
 pub fn logout() -> Html {
     let user_ctx = crate::hooks::use_user_context::use_user_context();
+    let api = use_context::<UseReducerHandle<APIData>>().expect("no ctx found");
+    api.dispatch(crate::types::data::APIDataAction::Init);
     {
         use_timeout(
             move || {

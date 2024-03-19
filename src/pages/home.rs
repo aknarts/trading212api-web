@@ -10,7 +10,6 @@ pub fn home() -> Html {
     }
     html!(
         <div class="container pb-0">
-            <h1 class="title is-1">{ "Welcome..." }</h1>
             {
                 if get_token().is_some() {
                     html!(
@@ -23,13 +22,5 @@ pub fn home() -> Html {
                 }
             }
         </div>
-    )
-}
-
-fn has_token_view() -> Html {
-    html!(
-        <>
-            <crate::pages::dashboard::cash::CashCardFallback />
-        </>
     )
 }

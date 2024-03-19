@@ -7,6 +7,8 @@ use crate::app::Route;
 pub fn header() -> Html {
     let user_ctx = crate::hooks::use_user_context::use_user_context();
     let theme = use_context::<UseStateHandle<crate::types::theme::Theme>>().expect("no ctx found");
+    let data =
+        use_context::<UseReducerHandle<crate::types::data::APIData>>().expect("no ctx found");
     let active = use_state(|| false);
     let active_class = if *active {
         (Some("show"), None)

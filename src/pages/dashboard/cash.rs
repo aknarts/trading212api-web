@@ -1,73 +1,101 @@
-use tracing::debug;
-use yew::{function_component, hook, html, Html, HtmlResult};
-use yew::suspense::{SuspensionResult, use_future, UseFutureHandle};
+use rust_decimal::prelude::FromPrimitive;
+use yew::{
+    classes, function_component, html, use_context, use_state, Callback, Html, UseReducerHandle,
+};
 
-#[function_component(CashCardFallback)]
-pub fn cash_fallback() -> Html {
-    html!(
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">{"Value"}</h5>
-                <div class="d-inline pe-1"><span class="badge text-bg-primary fs-6">{"Total: "}<span class="badge text-bg-secondary p-2">{"4"}</span></span></div>
-                <div class="d-inline pe-1"><span class="badge text-bg-primary fs-6">{"Invested: "}<span class="badge text-bg-secondary p-2">{"5"}</span></span></div>
-                <div class="d-inline pe-1"><span class="badge text-bg-primary fs-6">{"Free: "}<span class="badge text-bg-secondary p-2">{"6"}</span></span></div>
-                <div class="d-inline pe-1"><span class="badge text-bg-primary fs-6">{"Pie Free: "}<span class="badge text-bg-secondary p-2">{"7"}</span></span></div>
-                <div class="d-inline pe-1"><span class="badge text-bg-primary fs-6">{"Blocked: "}<span class="badge text-bg-secondary p-2">{"8"}</span></span></div>
-                <div class="d-inline pe-1"><span class="badge text-bg-primary fs-6">{"PPL: "}<span class="badge text-bg-secondary p-2">{"9"}</span></span></div>
-                <div class="d-inline pe-1"><span class="badge text-bg-primary fs-6">{"Result: "}<span class="badge text-bg-secondary p-2">{"10"}</span></span></div>
-            </div>
-        </div>
-    )
-}
-
-#[hook]
-fn use_account_cash() -> SuspensionResult<
-    UseFutureHandle<Result<trading212::models::cash::Cash, trading212::error::Error>>,
-> {
-    let user_ctx = crate::hooks::use_user_context::use_user_context();
-    // user_ctx
-    use_future(|| async move {
-        if let Some(c) = user_ctx.client() {
-            c.get_account_cash().await
-        } else {
-            Err(trading212::error::Error::NoClient)
-        }
-    })
-}
+use crate::types::data::APIData;
 
 #[function_component(CashCard)]
-pub fn cash() -> HtmlResult {
-    let res = use_account_cash()?;
-    let html_result = match *res {
-        Ok(ref cash) => {
+pub fn cash() -> Html {
+    let api = use_context::<UseReducerHandle<APIData>>().expect("no ctx found");
+    let active = use_state(|| false);
+    let active_class = if *active {
+        (Some("show"), None)
+    } else {
+        (None, Some("collapsed"))
+    };
+
+    let onclick = { Callback::from(move |_| active.set(!*active)) };
+
+    let data = (*api).clone();
+    let html_result = match data.cash {
+        Some(cash) => {
+            let currency = rusty_money::iso::find(&data.account.unwrap_or_default().currency_code)
+                .unwrap_or(rusty_money::iso::EUR);
+            let all_free = rusty_money::Money::from_decimal(
+                rust_decimal::Decimal::from_f32(cash.free).unwrap_or_default(),
+                currency,
+            );
+            let pie_free = rusty_money::Money::from_decimal(
+                rust_decimal::Decimal::from_f32(cash.pie_cash).unwrap_or_default(),
+                currency,
+            );
+            let total = rusty_money::Money::from_decimal(
+                rust_decimal::Decimal::from_f32(cash.total).unwrap_or_default(),
+                currency,
+            );
+
+            let invested = rusty_money::Money::from_decimal(
+                rust_decimal::Decimal::from_f32(cash.invested).unwrap_or_default(),
+                currency,
+            );
+            let ppl = rusty_money::Money::from_decimal(
+                rust_decimal::Decimal::from_f32(cash.ppl).unwrap_or_default(),
+                currency,
+            );
+            let blocked = rusty_money::Money::from_decimal(
+                rust_decimal::Decimal::from_f32(cash.blocked.unwrap_or_default())
+                    .unwrap_or_default(),
+                currency,
+            );
+            let ppl_class = if ppl.is_positive() {
+                "text-bg-success"
+            } else {
+                "text-bg-danger"
+            };
+            let available = all_free - pie_free.clone();
             html!(
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">{"Value"}</h5>
-                        <div class="d-inline pe-1"><span class="badge text-bg-primary fs-6">{"Total: "}<span class="badge text-bg-secondary p-2">{cash.total}</span></span></div>
-                        <div class="d-inline pe-1"><span class="badge text-bg-primary fs-6">{"Invested: "}<span class="badge text-bg-secondary p-2">{cash.invested}</span></span></div>
-                        <div class="d-inline pe-1"><span class="badge text-bg-primary fs-6">{"Free: "}<span class="badge text-bg-secondary p-2">{cash.free}</span></span></div>
-                        <div class="d-inline pe-1"><span class="badge text-bg-primary fs-6">{"Pie Free: "}<span class="badge text-bg-secondary p-2">{cash.pie_cash}</span></span></div>
-                        <div class="d-inline pe-1"><span class="badge text-bg-primary fs-6">{"Blocked: "}<span class="badge text-bg-secondary p-2">{cash.blocked.unwrap_or(0.0)}</span></span></div>
-                        <div class="d-inline pe-1"><span class="badge text-bg-primary fs-6">{"PPL: "}<span class="badge text-bg-secondary p-2">{cash.ppl}</span></span></div>
-                        <div class="d-inline pe-1"><span class="badge text-bg-primary fs-6">{"Result: "}<span class="badge text-bg-secondary p-2">{cash.result}</span></span></div>
+                <div class="accordion-item">
+                    <div class="accordion-header">
+                        <button class={classes!("accordion-button", active_class.1)} type="button" {onclick}>
+                            <span class="fs-4 me-2">{total.to_string()}</span>
+                            <span class={classes!("d-inline", "badge","rounded-pill", ppl_class)}>{ppl.to_string()}</span>
+                        </button>
+                    </div>
+                    <div class={classes!("accordion-collapse","collapse",active_class.0)}>
+                        <div class="accordion-body">
+                            <div class="row">
+                                <div class="col-6 col-sm-4">
+                                    <div class="pe-1">{"Invested: "}<span class="badge text-bg-secondary p-2">{invested.to_string()}</span></div>
+                                    <div class="pe-1">{"Return: "}<span class="badge text-bg-secondary p-2">{ppl.to_string()}</span></div>
+                                    <div class="pe-1">{"Result: "}<span class="badge text-bg-secondary p-2">{cash.result}</span></div>
+                                </div>
+                                <div class="col-6 col-sm-4">
+                                    <div class="pe-1">{"Free cash: "}<span class="badge text-bg-secondary p-2">{available.to_string()}</span></div>
+                                    <div class="pe-1">{"Pies cash: "}<span class="badge text-bg-secondary p-2">{pie_free.to_string()}</span></div>
+                                    <div class="pe-1">{"Blocked: "}<span class="badge text-bg-secondary p-2">{blocked.to_string()}</span></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )
         }
 
-        Err(ref e) => {
-            match e {
-                trading212::error::Error::Token => {
-                    debug!("Authorization issue: {}", e);
-                }
-                _ => {
-                    debug!("Failed to complete request: {e}");
-                }
-            };
-            html!(500)
+        None => {
+            html!(
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">{ "Loading..." }</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )
         }
     };
 
-    Ok(html_result)
+    html_result
 }

@@ -4,6 +4,7 @@ use yew::prelude::*;
 use yew_router::prelude::*;
 
 use crate::components::user_context_provider::UserContextProvider;
+use crate::types::data::APIData;
 
 #[derive(Routable, PartialEq, Eq, Clone, Debug)]
 pub enum Route {
@@ -31,6 +32,7 @@ pub fn document() -> Option<web_sys::Document> {
 #[function_component(App)]
 pub fn app() -> Html {
     let ctx = use_state(|| crate::types::theme::Theme { dark: true });
+    let data = use_reducer(APIData::default);
 
     document().and_then(|doc| {
         doc.document_element().and_then(|el| {
@@ -46,14 +48,19 @@ pub fn app() -> Html {
 
     html! {
         <ContextProvider<UseStateHandle<crate::types::theme::Theme>> context={ctx}>
-            <UserContextProvider>
-                <BrowserRouter>
-                    <crate::pages::header::Header />
-                    <main>
-                        <Switch<Route> render={switch} />
-                    </main>
-                </BrowserRouter>
-            </UserContextProvider>
+            <ContextProvider<UseReducerHandle<APIData>> context={data}>
+                <UserContextProvider>
+                    <BrowserRouter>
+                        <crate::components::cash_refresher::CashRefresher />
+                        <crate::components::account_refresher::AccountRefresher />
+                        <crate::components::exchange_refresher::ExchangeRefresher />
+                        <crate::pages::header::Header />
+                        <main>
+                            <Switch<Route> render={switch} />
+                        </main>
+                    </BrowserRouter>
+                </UserContextProvider>
+            </ContextProvider<UseReducerHandle<APIData>>>
         </ContextProvider<UseStateHandle<crate::types::theme::Theme>>>
     }
 }
