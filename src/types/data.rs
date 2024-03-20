@@ -1,18 +1,18 @@
-use trading212::models::exchange::Exchange;
-
 #[derive(serde::Serialize, Clone, Debug, Default, PartialEq)]
 pub struct APIData {
     pub cash: Option<trading212::models::cash::Cash>,
     pub timeouts: std::collections::HashMap<String, time::OffsetDateTime>,
     pub account: Option<trading212::models::account::Account>,
-    pub exchanges: Vec<Exchange>,
+    pub exchanges: Vec<trading212::models::exchange::Exchange>,
+    pub instruments: Vec<trading212::models::tradeable_instrument::TradeableInstrument>,
 }
 
 pub enum APIDataAction {
     Init,
     SetCash(Option<trading212::models::cash::Cash>),
     SetAccount(Option<trading212::models::account::Account>),
-    SetExchanges(Vec<Exchange>),
+    SetExchanges(Vec<trading212::models::exchange::Exchange>),
+    SetInstruments(Vec<trading212::models::tradeable_instrument::TradeableInstrument>),
 }
 
 impl yew::Reducible for APIData {
@@ -38,6 +38,11 @@ impl yew::Reducible for APIData {
                 new.exchanges = exchanges;
                 new.timeouts
                     .insert("account".to_string(), time::OffsetDateTime::now_utc());
+            }
+            APIDataAction::SetInstruments(instruments) => {
+                new.instruments = instruments;
+                new.timeouts
+                    .insert("instruments".to_string(), time::OffsetDateTime::now_utc());
             }
         }
         new.into()

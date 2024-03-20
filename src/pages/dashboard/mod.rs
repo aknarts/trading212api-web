@@ -2,10 +2,12 @@ use yew::{function_component, html, Html};
 
 use crate::pages::dashboard::cash::CashCard;
 use crate::pages::dashboard::exchanges::ExchangesCard;
+use crate::pages::dashboard::instruments::InstrumentsCard;
 
-pub mod cash;
+mod cash;
 pub mod exchange;
-pub mod exchanges;
+mod exchanges;
+mod instruments;
 
 #[function_component(Dashboard)]
 pub fn dashboard() -> Html {
@@ -13,6 +15,7 @@ pub fn dashboard() -> Html {
         <div class="accordion">
             <CashCard />
             <ExchangesCard />
+            <InstrumentsCard />
         </div>
     )
 }

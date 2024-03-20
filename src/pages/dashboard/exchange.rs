@@ -1,11 +1,6 @@
 use rust_decimal::prelude::ToPrimitive;
 use trading212::models::time_event::Type;
-use yew::{
-    Callback, classes, function_component, html, Html, Properties, use_context, use_state,
-    UseReducerHandle,
-};
-
-use crate::types::data::APIData;
+use yew::{classes, function_component, html, use_state, Callback, Html, Properties};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
@@ -14,7 +9,6 @@ pub struct Props {
 
 #[function_component(Exchange)]
 pub fn exchange(props: &Props) -> Html {
-    let api = use_context::<UseReducerHandle<APIData>>().expect("no ctx found");
     let active = use_state(|| false);
     let active_class = if *active {
         (Some("show"), None)

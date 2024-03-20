@@ -2,7 +2,7 @@ use std::sync::RwLock;
 
 use gloo_storage::{LocalStorage, Storage};
 use lazy_static::lazy_static;
-use tracing::{debug, error};
+use tracing::error;
 
 use crate::TOKEN_KEY;
 use crate::types::auth::Token;
