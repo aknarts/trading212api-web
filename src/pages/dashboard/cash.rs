@@ -1,6 +1,6 @@
 use rust_decimal::prelude::FromPrimitive;
 use yew::{
-    classes, function_component, html, use_context, use_state, Callback, Html, UseReducerHandle,
+    Callback, classes, function_component, html, Html, use_context, use_state, UseReducerHandle,
 };
 
 use crate::types::data::APIData;
@@ -66,14 +66,42 @@ pub fn cash() -> Html {
                         <div class="accordion-body">
                             <div class="row">
                                 <div class="col-6 col-sm-4">
-                                    <div class="pe-1">{"Invested: "}<span class="badge text-bg-secondary p-2">{invested.to_string()}</span></div>
-                                    <div class="pe-1">{"Return: "}<span class="badge text-bg-secondary p-2">{ppl.to_string()}</span></div>
-                                    <div class="pe-1">{"Result: "}<span class="badge text-bg-secondary p-2">{cash.result}</span></div>
+                                    <div class="row">
+                                        <div class="col-3">{"Invested"}</div>
+                                        <div class="col-2 col-sm-2">
+                                            <span class="badge text-bg-secondary p-2">{invested.to_string()}</span>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-3">{"Return"}</div>
+                                        <div class="col-2 col-sm-2"><span class="badge text-bg-secondary p-2">{ppl.to_string()}</span></div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-3">{"Result"}</div>
+                                        <div class="col-2 col-sm-2">
+                                            <span class="badge text-bg-secondary p-2">{cash.result}</span>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="col-6 col-sm-4">
-                                    <div class="pe-1">{"Free cash: "}<span class="badge text-bg-secondary p-2">{available.to_string()}</span></div>
-                                    <div class="pe-1">{"Pies cash: "}<span class="badge text-bg-secondary p-2">{pie_free.to_string()}</span></div>
-                                    <div class="pe-1">{"Blocked: "}<span class="badge text-bg-secondary p-2">{blocked.to_string()}</span></div>
+                                    <div class="row">
+                                        <div class="col-4">{"Free cash"}</div>
+                                        <div class="col-2 col-sm-2">
+                                            <span class="badge text-bg-secondary p-2">{available.to_string()}</span>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-4">{"Pies cash"}</div>
+                                        <div class="col-2 col-sm-2">
+                                            <span class="badge text-bg-secondary p-2">{pie_free.to_string()}</span>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-4">{"Blocked"}</div>
+                                        <div class="col-2 col-sm-2">
+                                            <span class="badge text-bg-secondary p-2">{blocked.to_string()}</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

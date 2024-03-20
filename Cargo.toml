@@ -20,7 +20,7 @@ serde = { version = "1" }
 time = { version = "0.3", features = ["wasm-bindgen"] }
 tracing = "0.1"
 tracing-wasm = "0.2"
-trading212 = { version = "0.1" }
+trading212 = { version = "0.2" }
 yew = { version = "0.21.0", features = ["csr"] }
 yew-hooks = "0.3"
 yew-router = "0.18"
