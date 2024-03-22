@@ -5,6 +5,7 @@ pub struct APIData {
     pub account: Option<trading212::models::account::Account>,
     pub exchanges: Vec<trading212::models::exchange::Exchange>,
     pub instruments: Vec<trading212::models::tradeable_instrument::TradeableInstrument>,
+    pub positions: Vec<trading212::models::position::Position>,
 }
 
 pub enum APIDataAction {
@@ -13,6 +14,19 @@ pub enum APIDataAction {
     SetAccount(Option<trading212::models::account::Account>),
     SetExchanges(Vec<trading212::models::exchange::Exchange>),
     SetInstruments(Vec<trading212::models::tradeable_instrument::TradeableInstrument>),
+    SetPositions(Vec<trading212::models::position::Position>),
+}
+
+impl APIData {
+    pub fn get_instrument_by_ticker(
+        &self,
+        ticker: &str,
+    ) -> Option<trading212::models::tradeable_instrument::TradeableInstrument> {
+        self.instruments
+            .iter()
+            .find(|i| i.ticker.eq(ticker))
+            .cloned()
+    }
 }
 
 impl yew::Reducible for APIData {
@@ -43,6 +57,11 @@ impl yew::Reducible for APIData {
                 new.instruments = instruments;
                 new.timeouts
                     .insert("instruments".to_string(), time::OffsetDateTime::now_utc());
+            }
+            APIDataAction::SetPositions(positions) => {
+                new.positions = positions;
+                new.timeouts
+                    .insert("positions".to_string(), time::OffsetDateTime::now_utc());
             }
         }
         new.into()

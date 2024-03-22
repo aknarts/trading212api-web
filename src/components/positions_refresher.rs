@@ -3,11 +3,10 @@ use yew::prelude::*;
 
 use crate::hooks::use_user_context::Handle;
 
-#[function_component(ExchangeRefresher)]
-pub fn exchange_refresher() -> Html {
+#[function_component(PositionsRefresher)]
+pub fn positions_refresher() -> Html {
     let user_ctx = crate::hooks::use_user_context::use_user_context();
-    let data =
-        use_context::<UseReducerHandle<crate::types::data::APIData>>().expect("no ctx found");
+    let data = use_context::<UseReducerHandle<crate::types::data::APIData>>().expect("no ctx found");
     {
         let dispatcher = data.dispatcher();
         let ctx = user_ctx.clone();
@@ -23,7 +22,7 @@ pub fn exchange_refresher() -> Html {
                 let user_ctx = user_ctx.clone();
                 refresh(dispatcher, user_ctx);
             },
-            61000,
+            21000,
         );
     }
     html! { <></> }
@@ -32,12 +31,12 @@ pub fn exchange_refresher() -> Html {
 fn refresh(dispatcher: UseReducerDispatcher<crate::types::data::APIData>, user_ctx: Handle) {
     wasm_bindgen_futures::spawn_local(async move {
         while let Some(c) = user_ctx.client() {
-            debug!("fetching exchanges");
-            if let Ok(exchanges) = c.get_exchanges().await {
-                dispatcher.dispatch(crate::types::data::APIDataAction::SetExchanges(
-                    exchanges.clone(),
+            debug!("fetching positions");
+            if let Ok(positions) = c.get_all_open_positions().await {
+                dispatcher.dispatch(crate::types::data::APIDataAction::SetPositions(
+                    positions.clone(),
                 ));
-                debug!("fetched exchanges: {:?}", exchanges.len());
+                debug!("fetched positions: {:?}", positions.len());
                 return;
             }
             yew::platform::time::sleep(std::time::Duration::from_secs(5)).await;

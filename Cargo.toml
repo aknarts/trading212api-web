@@ -17,6 +17,7 @@ gloo-storage = "0.3"
 rust_decimal = "1.34"
 rusty-money = "0.4"
 serde = { version = "1" }
+serde-value = "0.7"
 time = { version = "0.3", features = ["wasm-bindgen"] }
 tracing = "0.1"
 tracing-wasm = "0.2"
