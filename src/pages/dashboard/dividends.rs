@@ -4,11 +4,10 @@ use yew::{
 
 use crate::types::data::APIData;
 
-#[function_component(PositionsCard)]
-pub fn positions() -> Html {
+#[function_component(DividendsCard)]
+pub fn dividends() -> Html {
     let api = use_context::<UseReducerHandle<APIData>>().expect("no ctx found");
     let active = use_state(|| false);
-
     let active_class = if *active {
         (Some("show"), None)
     } else {
@@ -18,16 +17,16 @@ pub fn positions() -> Html {
     let onclick = { Callback::from(move |_| active.set(!*active)) };
 
     let data = (*api).clone();
-    let positions = &data.positions;
+    let dividends = data.dividends.dividends;
 
-    if positions.is_empty() {
+    if dividends.is_empty() {
         return html! {
             <div class="accordion-item">
                 <div class="accordion-header">
                     <button class={classes!("accordion-button", active_class.1)} type="button">
-                        <span class="fs-4 me-2">{ "Positions"}</span>
+                        <span class="fs-4 me-2">{ "Instruments "} </span>
                         <span class="spinner-border" role="status">
-                            <span class="visually-hidden">{ "Loading..." }</span>
+                                <span class="visually-hidden">{ "Loading..." }</span>
                         </span>
                     </button>
                 </div>
@@ -39,13 +38,13 @@ pub fn positions() -> Html {
         <div class="accordion-item">
             <div class="accordion-header">
                 <button class={classes!("accordion-button", active_class.1)} type="button" {onclick}>
-                    <span class="fs-4 me-2">{ "Positions "} </span>
-                    <span class={classes!("d-inline", "badge","rounded-pill", "text-bg-secondary")}>{positions.len()}</span>
+                    <span class="fs-4 me-2">{ "Dividends "} </span>
+                    <span class={classes!("d-inline", "badge","rounded-pill", "text-bg-secondary")}>{dividends.len()}</span>
                 </button>
             </div>
             <div class={classes!("accordion-collapse","collapse",active_class.0)}>
                 <div class="accordion-body">
-                    <crate::pages::dashboard::positions_table::PositionsTable positions={positions.clone()} data={data.clone()}/>
+
                 </div>
             </div>
         </div>

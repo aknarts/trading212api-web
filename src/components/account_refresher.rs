@@ -1,4 +1,3 @@
-use tracing::debug;
 use yew::prelude::*;
 
 use crate::hooks::use_user_context::Handle;
@@ -32,12 +31,10 @@ pub fn account_refresher() -> Html {
 fn refresh(dispatcher: UseReducerDispatcher<crate::types::data::APIData>, user_ctx: Handle) {
     wasm_bindgen_futures::spawn_local(async move {
         if let Some(c) = user_ctx.client() {
-            debug!("fetching account metadata");
             if let Ok(account) = c.get_account_metadata().await {
                 dispatcher.dispatch(crate::types::data::APIDataAction::SetAccount(Some(
                     account.clone(),
                 )));
-                debug!("fetched account metadata: {:?}", account);
             }
         }
     });

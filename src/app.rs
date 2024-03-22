@@ -1,4 +1,3 @@
-use tracing::debug;
 use web_sys::Window;
 use yew::prelude::*;
 use yew_router::prelude::*;
@@ -56,6 +55,7 @@ pub fn app() -> Html {
                         <crate::components::exchange_refresher::ExchangeRefresher />
                         <crate::components::instrument_refresher::InstrumentRefresher />
                         <crate::components::positions_refresher::PositionsRefresher />
+                        <crate::components::dividends_refresher::DividendsRefresher />
                         <crate::pages::header::Header />
                         <main>
                             <Switch<Route> render={switch} />
@@ -69,7 +69,6 @@ pub fn app() -> Html {
 
 #[allow(clippy::needless_pass_by_value)]
 fn switch(routes: Route) -> Html {
-    debug!("Routing to {:?}", routes);
     match routes {
         Route::Home => html!( <crate::pages::home::Home /> ),
         Route::NotFound => html!( <crate::pages::page_not_found::PageNotFound /> ),

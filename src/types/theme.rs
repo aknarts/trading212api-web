@@ -2,7 +2,7 @@ use std::sync::RwLock;
 
 use gloo_storage::{LocalStorage, Storage};
 use lazy_static::lazy_static;
-use tracing::{debug, error};
+use tracing::error;
 
 const DARK_KEY: &str = "theme.trading212api.self";
 
@@ -41,17 +41,13 @@ impl Theme {
 
     pub fn get_dark(&self) -> bool {
         match DARK.write() {
-            Ok(mut r) => {
-                debug!("Dark: {:?}", r);
-                match r.clone() {
-                    None => {
-                        *r = Some(true);
-                        debug!("Here");
-                        true
-                    }
-                    Some(d) => d,
+            Ok(mut r) => match r.clone() {
+                None => {
+                    *r = Some(true);
+                    true
                 }
-            }
+                Some(d) => d,
+            },
             Err(e) => {
                 error!("Error getting dark: {:?}", e);
                 true

@@ -1,3 +1,27 @@
+use tracing::warn;
+use trading212::models::history_dividend_item::Type;
+use uuid::Uuid;
+
+#[derive(serde::Serialize, Clone, Debug, PartialEq)]
+pub struct DividendData {
+    pub dividends: std::collections::HashMap<
+        Uuid,
+        trading212::models::history_dividend_item::HistoryDividendItem,
+    >,
+    pub dividends_cursor: Option<i64>,
+    pub loaded: bool,
+}
+
+impl Default for DividendData {
+    fn default() -> Self {
+        Self {
+            dividends: Default::default(),
+            dividends_cursor: Default::default(),
+            loaded: false,
+        }
+    }
+}
+
 #[derive(serde::Serialize, Clone, Debug, Default, PartialEq)]
 pub struct APIData {
     pub cash: Option<trading212::models::cash::Cash>,
@@ -6,6 +30,7 @@ pub struct APIData {
     pub exchanges: Vec<trading212::models::exchange::Exchange>,
     pub instruments: Vec<trading212::models::tradeable_instrument::TradeableInstrument>,
     pub positions: Vec<trading212::models::position::Position>,
+    pub dividends: DividendData,
 }
 
 pub enum APIDataAction {
@@ -15,6 +40,8 @@ pub enum APIDataAction {
     SetExchanges(Vec<trading212::models::exchange::Exchange>),
     SetInstruments(Vec<trading212::models::tradeable_instrument::TradeableInstrument>),
     SetPositions(Vec<trading212::models::position::Position>),
+    AddDividend(trading212::models::history_dividend_item::HistoryDividendItem),
+    SetDividendsCursor(Option<i64>),
 }
 
 impl APIData {
@@ -62,6 +89,17 @@ impl yew::Reducible for APIData {
                 new.positions = positions;
                 new.timeouts
                     .insert("positions".to_string(), time::OffsetDateTime::now_utc());
+            }
+            APIDataAction::AddDividend(item) => {
+                if let Type::Unknown = item.r#type {
+                    warn!("Unknown dividend type, most likely a new type: {:?}", item)
+                }
+                new.dividends.dividends.insert(item.reference, item);
+                new.timeouts
+                    .insert("dividends".to_string(), time::OffsetDateTime::now_utc());
+            }
+            APIDataAction::SetDividendsCursor(cursor) => {
+                new.dividends.dividends_cursor = cursor;
             }
         }
         new.into()
