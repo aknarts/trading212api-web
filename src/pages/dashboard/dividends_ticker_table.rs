@@ -1,11 +1,10 @@
 use rust_decimal::prelude::FromPrimitive;
 use serde::Serialize;
 use tracing::debug;
-use trading212::models::position::Position;
 use web_sys::{HtmlInputElement, InputEvent};
 use yew::{
-    classes, function_component, html, use_context, use_state, Callback, Html, Properties,
-    TargetCast, UseReducerHandle,
+    classes, function_component, html, use_context, use_state, Callback, Html, TargetCast,
+    UseReducerHandle,
 };
 
 use crate::components::table::types::{ColumnBuilder, Table, TableData};

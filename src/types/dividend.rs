@@ -1,3 +1,4 @@
+use time::format_description;
 use uuid::Uuid;
 
 #[derive(serde::Serialize, Clone, Debug, PartialEq)]
@@ -54,6 +55,39 @@ impl DividendData {
             let ticker = &dividend.ticker;
             let amount = dividend.amount;
             let entry = sum.entry(ticker.clone()).or_insert(0.0);
+            *entry += amount;
+        }
+        sum
+    }
+
+    /// get sum of dividends not older than time::Duration
+    pub fn sum_dividends_by_ticker_not_older_than(
+        &self,
+        duration: time::Duration,
+    ) -> std::collections::HashMap<String, f32> {
+        let now = time::OffsetDateTime::now_utc();
+        let mut sum = std::collections::HashMap::new();
+        for dividend in self.dividends.values() {
+            let ticker = &dividend.ticker;
+            let amount = dividend.amount;
+            let entry = sum.entry(ticker.clone()).or_insert(0.0);
+            if now - dividend.paid_on <= duration {
+                *entry += amount;
+            }
+        }
+        sum
+    }
+
+    pub fn sum_dividends_by_month(&self) -> std::collections::HashMap<String, f32> {
+        let mut sum = std::collections::HashMap::new();
+        for dividend in self.dividends.values() {
+            let month = dividend
+                .paid_on
+                .format(&format_description::parse("[year]-[month]").unwrap())
+                .unwrap_or_default()
+                .to_string();
+            let amount = dividend.amount;
+            let entry = sum.entry(month).or_insert(0.0);
             *entry += amount;
         }
         sum
