@@ -45,7 +45,7 @@ pub fn positions() -> Html {
             </div>
             <div class={classes!("accordion-collapse","collapse",active_class.0)}>
                 <div class="accordion-body">
-                    <crate::pages::dashboard::positions_table::PositionsTable positions={positions.clone()} data={data.clone()}/>
+                    <crate::pages::dashboard::positions_table::PositionsTable />
                 </div>
             </div>
         </div>

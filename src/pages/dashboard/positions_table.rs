@@ -1,19 +1,18 @@
 use rust_decimal::prelude::FromPrimitive;
 use serde::Serialize;
 use web_sys::{HtmlInputElement, InputEvent};
-use yew::{Callback, classes, function_component, html, Html, Properties, TargetCast, use_state};
+use yew::{
+    classes, function_component, html, use_context, use_state, Callback, Html, Properties,
+    TargetCast, UseReducerHandle,
+};
 
-use crate::components::table::Options;
 use crate::components::table::types::{ColumnBuilder, Table, TableData};
-
-#[derive(Properties, PartialEq)]
-pub struct Props {
-    pub positions: Vec<trading212::models::position::Position>,
-    pub data: crate::types::data::APIData,
-}
+use crate::components::table::Options;
+use crate::types::data::APIData;
 
 #[function_component(PositionsTable)]
-pub fn positions_table(props: &Props) -> Html {
+pub fn positions_table() -> Html {
+    let api = use_context::<UseReducerHandle<APIData>>().expect("no ctx found");
     let search_term = use_state(|| None::<String>);
     let search = (*search_term).as_ref().cloned();
 
@@ -71,13 +70,13 @@ pub fn positions_table(props: &Props) -> Html {
 
     let mut table_data = Vec::new();
 
-    let positions = &props.positions;
-    let data = &props.data;
+    let data = (*api).clone();
+    let positions = data.positions.clone();
     let instruments = data.instruments.len();
 
     let mut sum = 0.0;
 
-    for position in positions {
+    for position in &positions {
         let account_currency = data
             .account
             .clone()
@@ -159,11 +158,17 @@ impl PartialOrd for PositionLine {
 impl TableData for PositionLine {
     fn get_field_as_html(&self, field_name: &str) -> crate::components::table::error::Result<Html> {
         let html = match field_name {
-            "ticker" => html! { { &self.ticker } },
+            "ticker" => {
+                let ticker = match &self.instrument {
+                    None => self.ticker.clone(),
+                    Some(i) => i.short_name.clone(),
+                };
+                html! { { ticker } }
+            }
             "instrument" => {
                 let instrument = match &self.instrument {
                     None => "".to_string(),
-                    Some(i) => i.name.clone().unwrap_or_default(),
+                    Some(i) => i.name.clone(),
                 };
                 html! { { instrument } }
             }
@@ -230,14 +235,9 @@ impl TableData for PositionLine {
     ) -> crate::components::table::error::Result<serde_value::Value> {
         let value = match field_name {
             "ticker" => serde_value::to_value(&self.ticker),
-            "instrument" => serde_value::to_value(
-                &self
-                    .instrument
-                    .clone()
-                    .unwrap_or_default()
-                    .name
-                    .unwrap_or_default(),
-            ),
+            "instrument" => {
+                serde_value::to_value(&self.instrument.clone().unwrap_or_default().name)
+            }
             "ppl" => serde_value::to_value(&self.ppl.ppl.to_string()),
             "quantity" => serde_value::to_value(&self.quantity),
             "avg_price" => serde_value::to_value(&self.avg_price),
@@ -256,7 +256,6 @@ impl TableData for PositionLine {
                     .clone()
                     .unwrap_or_default()
                     .name
-                    .unwrap_or_default()
                     .to_lowercase()
                     .contains(&search.to_lowercase())
         })

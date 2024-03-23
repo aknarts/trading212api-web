@@ -8,6 +8,7 @@ use crate::pages::dashboard::positions::PositionsCard;
 
 mod cash;
 mod dividends;
+pub mod dividends_ticker_table;
 pub mod exchange;
 mod exchanges;
 mod instruments;

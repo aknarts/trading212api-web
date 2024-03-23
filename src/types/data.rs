@@ -1,26 +1,5 @@
 use tracing::warn;
 use trading212::models::history_dividend_item::Type;
-use uuid::Uuid;
-
-#[derive(serde::Serialize, Clone, Debug, PartialEq)]
-pub struct DividendData {
-    pub dividends: std::collections::HashMap<
-        Uuid,
-        trading212::models::history_dividend_item::HistoryDividendItem,
-    >,
-    pub dividends_cursor: Option<i64>,
-    pub loaded: bool,
-}
-
-impl Default for DividendData {
-    fn default() -> Self {
-        Self {
-            dividends: Default::default(),
-            dividends_cursor: Default::default(),
-            loaded: false,
-        }
-    }
-}
 
 #[derive(serde::Serialize, Clone, Debug, Default, PartialEq)]
 pub struct APIData {
@@ -30,7 +9,7 @@ pub struct APIData {
     pub exchanges: Vec<trading212::models::exchange::Exchange>,
     pub instruments: Vec<trading212::models::tradeable_instrument::TradeableInstrument>,
     pub positions: Vec<trading212::models::position::Position>,
-    pub dividends: DividendData,
+    pub dividends: crate::types::dividend::DividendData,
 }
 
 pub enum APIDataAction {
@@ -42,6 +21,7 @@ pub enum APIDataAction {
     SetPositions(Vec<trading212::models::position::Position>),
     AddDividend(trading212::models::history_dividend_item::HistoryDividendItem),
     SetDividendsCursor(Option<i64>),
+    SetDividendsLoaded(bool),
 }
 
 impl APIData {
@@ -53,6 +33,13 @@ impl APIData {
             .iter()
             .find(|i| i.ticker.eq(ticker))
             .cloned()
+    }
+
+    pub fn get_position_by_ticker(
+        &self,
+        ticker: &str,
+    ) -> Option<trading212::models::position::Position> {
+        self.positions.iter().find(|p| p.ticker.eq(ticker)).cloned()
     }
 }
 
@@ -94,12 +81,15 @@ impl yew::Reducible for APIData {
                 if let Type::Unknown = item.r#type {
                     warn!("Unknown dividend type, most likely a new type: {:?}", item)
                 }
-                new.dividends.dividends.insert(item.reference, item);
+                new.dividends.add_dividend(item);
                 new.timeouts
                     .insert("dividends".to_string(), time::OffsetDateTime::now_utc());
             }
             APIDataAction::SetDividendsCursor(cursor) => {
-                new.dividends.dividends_cursor = cursor;
+                new.dividends.set_dividends_cursor(cursor);
+            }
+            APIDataAction::SetDividendsLoaded(loaded) => {
+                new.dividends.set_loaded(loaded);
             }
         }
         new.into()

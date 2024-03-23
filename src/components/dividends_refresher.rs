@@ -24,7 +24,11 @@ pub fn dividends_refresher() -> Html {
             move || {
                 let dispatcher = dispatcher.clone();
                 let user_ctx = user_ctx.clone();
-                let cursor = (*data).dividends.dividends_cursor;
+                let cursor = if (*data).dividends.loaded {
+                    None
+                } else {
+                    (*data).dividends.dividends_cursor
+                };
                 refresh(dispatcher, user_ctx, cursor);
             },
             11000,
@@ -78,6 +82,8 @@ fn refresh(
                     warn!("Most likely reached the end of dividends");
                     dispatcher
                         .dispatch(crate::types::data::APIDataAction::SetDividendsCursor(None));
+                    dispatcher
+                        .dispatch(crate::types::data::APIDataAction::SetDividendsLoaded(true));
                     return;
                 }
                 Err(e) => {

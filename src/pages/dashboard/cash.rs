@@ -34,6 +34,10 @@ pub fn cash() -> Html {
                 rust_decimal::Decimal::from_f32(cash.total).unwrap_or_default(),
                 currency,
             );
+            let result = rusty_money::Money::from_decimal(
+                rust_decimal::Decimal::from_f32(cash.result).unwrap_or_default(),
+                currency,
+            );
 
             let invested = rusty_money::Money::from_decimal(
                 rust_decimal::Decimal::from_f32(cash.invested).unwrap_or_default(),
@@ -48,18 +52,18 @@ pub fn cash() -> Html {
                     .unwrap_or_default(),
                 currency,
             );
-            let ppl_class = if ppl.is_positive() {
-                "text-bg-success"
-            } else {
-                "text-bg-danger"
-            };
+            let dividend = rusty_money::Money::from_decimal(
+                rust_decimal::Decimal::from_f32(data.dividends.sum_dividends()).unwrap_or_default(),
+                currency,
+            );
+
             let available = all_free - pie_free.clone();
             html!(
                 <div class="accordion-item">
                     <div class="accordion-header">
                         <button class={classes!("accordion-button", active_class.1)} type="button" {onclick}>
                             <span class="fs-4 me-2">{total.to_string()}</span>
-                            <span class={classes!("d-inline", "badge","rounded-pill", ppl_class)}>{ppl.to_string()}</span>
+                            <span class={classes!("d-inline", "badge","rounded-pill", bg_if_positive(ppl.is_positive()))}>{ppl.to_string()}</span>
                         </button>
                     </div>
                     <div class={classes!("accordion-collapse","collapse",active_class.0)}>
@@ -74,12 +78,12 @@ pub fn cash() -> Html {
                                     </div>
                                     <div class="row">
                                         <div class="col-3">{"Return"}</div>
-                                        <div class="col-2 col-sm-2"><span class="badge text-bg-secondary p-2">{ppl.to_string()}</span></div>
+                                        <div class="col-2 col-sm-2"><span class={classes!("badge","p-2", bg_if_positive(ppl.is_positive()))}>{ppl.to_string()}</span></div>
                                     </div>
                                     <div class="row">
-                                        <div class="col-3">{"Result"}</div>
+                                        <div class="col-3">{"Real P/L"}</div>
                                         <div class="col-2 col-sm-2">
-                                            <span class="badge text-bg-secondary p-2">{cash.result}</span>
+                                            <span class={classes!("badge","p-2", bg_if_positive(result.is_positive()))}>{result.to_string()}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -100,6 +104,12 @@ pub fn cash() -> Html {
                                         <div class="col-4">{"Blocked"}</div>
                                         <div class="col-2 col-sm-2">
                                             <span class="badge text-bg-secondary p-2">{blocked.to_string()}</span>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-4">{"Dividend"}</div>
+                                        <div class="col-2 col-sm-2">
+                                            <span class="badge text-bg-secondary p-2">{dividend.to_string()}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -126,4 +136,12 @@ pub fn cash() -> Html {
     };
 
     html_result
+}
+
+fn bg_if_positive(value: bool) -> &'static str {
+    if value {
+        "text-bg-success"
+    } else {
+        "text-bg-danger"
+    }
 }
