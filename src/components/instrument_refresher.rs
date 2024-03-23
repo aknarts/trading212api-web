@@ -38,7 +38,7 @@ fn refresh(dispatcher: UseReducerDispatcher<crate::types::data::APIData>, user_c
                     dispatcher.dispatch(crate::types::data::APIDataAction::SetInstruments(
                         instruments.clone(),
                     ));
-                    return;
+                    break;
                 }
                 Err(e) => {
                     if let Error::Limit = e {
@@ -47,6 +47,7 @@ fn refresh(dispatcher: UseReducerDispatcher<crate::types::data::APIData>, user_c
                         continue;
                     }
                     error!("Failed to fetch instruments: {:?}", e);
+                    break;
                 }
             }
         }

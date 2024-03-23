@@ -10,6 +10,7 @@ pub struct APIData {
     pub instruments: Vec<trading212::models::tradeable_instrument::TradeableInstrument>,
     pub positions: Vec<trading212::models::position::Position>,
     pub dividends: crate::types::dividend::DividendData,
+    pub pies: crate::types::pie::PiesData,
 }
 
 pub enum APIDataAction {
@@ -22,6 +23,11 @@ pub enum APIDataAction {
     AddDividend(trading212::models::history_dividend_item::HistoryDividendItem),
     SetDividendsCursor(Option<i64>),
     SetDividendsLoaded(bool),
+    AddPie(trading212::models::account_bucket_result_response::AccountBucketResultResponse),
+    AddPieDetails(
+        i64,
+        trading212::models::account_bucket_instruments_detailed_response::AccountBucketInstrumentsDetailedResponse,
+    ),
 }
 
 impl APIData {
@@ -90,6 +96,16 @@ impl yew::Reducible for APIData {
             }
             APIDataAction::SetDividendsLoaded(loaded) => {
                 new.dividends.set_loaded(loaded);
+            }
+            APIDataAction::AddPie(pie) => {
+                new.pies.add_pie(pie);
+                new.timeouts
+                    .insert("pies".to_string(), time::OffsetDateTime::now_utc());
+            }
+            APIDataAction::AddPieDetails(id, details) => {
+                new.pies.add_detail(id, details);
+                new.timeouts
+                    .insert("pie_details".to_string(), time::OffsetDateTime::now_utc());
             }
         }
         new.into()

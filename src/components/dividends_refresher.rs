@@ -84,7 +84,7 @@ fn refresh(
                         .dispatch(crate::types::data::APIDataAction::SetDividendsCursor(None));
                     dispatcher
                         .dispatch(crate::types::data::APIDataAction::SetDividendsLoaded(true));
-                    return;
+                    break;
                 }
                 Err(e) => {
                     if let Error::Limit = e {
@@ -93,6 +93,7 @@ fn refresh(
                         continue;
                     }
                     error!("Failed to fetch dividends: {:?}", e);
+                    break;
                 }
             }
         }

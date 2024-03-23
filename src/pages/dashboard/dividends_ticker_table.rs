@@ -77,7 +77,6 @@ pub fn dividends_ticker_table() -> Html {
             }
         };
         let position = data.get_position_by_ticker(&ticker);
-        debug!("Instrument: {:?}", instrument.short_name);
 
         table_data.push(DividendLine {
             ticker: instrument.short_name,
