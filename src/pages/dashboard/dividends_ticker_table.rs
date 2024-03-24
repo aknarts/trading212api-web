@@ -1,6 +1,5 @@
 use rust_decimal::prelude::FromPrimitive;
 use serde::Serialize;
-use tracing::debug;
 use web_sys::{HtmlInputElement, InputEvent};
 use yew::{
     classes, function_component, html, use_context, use_state, Callback, Html, TargetCast,

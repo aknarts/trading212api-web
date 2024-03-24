@@ -56,7 +56,7 @@ pub fn pies() -> Html {
             </div>
             <div class={classes!("accordion-collapse","collapse",active_class.0)}>
                 <div class="accordion-body">
-
+                    <crate::pages::dashboard::pies_table::PiesTable />
                 </div>
             </div>
         </div>

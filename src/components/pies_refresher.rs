@@ -1,4 +1,4 @@
-use tracing::{debug, error, warn};
+use tracing::{error, warn};
 use trading212::error::Error;
 use yew::prelude::*;
 

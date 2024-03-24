@@ -14,6 +14,7 @@ pub mod exchange;
 mod exchanges;
 mod instruments;
 pub mod pies;
+pub mod pies_table;
 mod positions;
 pub mod positions_table;
 
