@@ -1,6 +1,6 @@
 use rust_decimal::prelude::FromPrimitive;
 use yew::{
-    Callback, classes, function_component, html, Html, use_context, use_state, UseReducerHandle,
+    classes, function_component, html, use_context, use_state, Callback, Html, UseReducerHandle,
 };
 
 use crate::types::data::APIData;
@@ -53,7 +53,7 @@ pub fn cash() -> Html {
                 currency,
             );
             let dividend = rusty_money::Money::from_decimal(
-                rust_decimal::Decimal::from_f32(data.dividends.sum_dividends()).unwrap_or_default(),
+                rust_decimal::Decimal::from_f32(data.dividends.sum()).unwrap_or_default(),
                 currency,
             );
 

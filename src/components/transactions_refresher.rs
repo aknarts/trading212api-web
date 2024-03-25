@@ -1,12 +1,12 @@
 use http::Uri;
-use tracing::{error, info, warn};
+use tracing::{error, warn};
 use trading212::error::Error;
 use yew::prelude::*;
 
 use crate::hooks::use_user_context::Handle;
 
-#[function_component(DividendsRefresher)]
-pub fn dividends_refresher() -> Html {
+#[function_component(TransactionsRefresher)]
+pub fn transactions_refresher() -> Html {
     let user_ctx = crate::hooks::use_user_context::use_user_context();
     let data =
         use_context::<UseReducerHandle<crate::types::data::APIData>>().expect("no ctx found");
@@ -27,7 +27,9 @@ pub fn dividends_refresher() -> Html {
                 let cursor = if (*data).dividends.loaded {
                     None
                 } else {
-                    (*data).dividends.cursor
+                    // FIXME: Pagination does not work yet, falling back to None
+                    //(*data).dividends.dividends_cursor
+                    None
                 };
                 refresh(dispatcher, user_ctx, cursor);
             },
@@ -44,33 +46,21 @@ fn refresh(
 ) {
     wasm_bindgen_futures::spawn_local(async move {
         while let Some(c) = user_ctx.client() {
-            match c.get_paid_dividends(Some(50), cursor, None).await {
-                Ok(dividends) => {
-                    for dividend in &dividends.items {
-                        dispatcher.dispatch(crate::types::data::APIDataAction::AddDividend(
-                            dividend.clone(),
+            match c.transaction_list(Some(50), cursor).await {
+                Ok(transactions) => {
+                    for transaction in &transactions.items {
+                        dispatcher.dispatch(crate::types::data::APIDataAction::AddTransaction(
+                            transaction.clone(),
                         ));
                     }
 
-                    if let Some(next) = dividends.next_page_path {
+                    if let Some(next) = transactions.next_page_path {
                         match next.parse::<Uri>() {
                             Ok(uri) => {
                                 if let Some(query) = uri.query() {
                                     let mut pairs = form_urlencoded::parse(query.as_bytes());
                                     while let Some((key, value)) = pairs.next() {
-                                        if key == "cursor" {
-                                            match value.to_string().parse::<i64>() {
-                                                Ok(cursor) => {
-                                                    dispatcher.dispatch(crate::types::data::APIDataAction::SetDividendsCursor(
-                                                        Some(cursor)
-                                                    ));
-                                                    return;
-                                                }
-                                                Err(e) => {
-                                                    error!("Error parsing cursor: {:?}", e);
-                                                }
-                                            };
-                                        }
+                                        // FIXME: It is unclear what the cursor is at this point, when Trading212 fixes the docs and the endpoint this needs to get resolved
                                     }
                                 }
                             }
@@ -80,10 +70,12 @@ fn refresh(
                         };
                     }
                     warn!("Most likely reached the end of dividends");
-                    dispatcher
-                        .dispatch(crate::types::data::APIDataAction::SetDividendsCursor(None));
-                    dispatcher
-                        .dispatch(crate::types::data::APIDataAction::SetDividendsLoaded(true));
+                    dispatcher.dispatch(crate::types::data::APIDataAction::SetTransactionsCursor(
+                        None,
+                    ));
+                    dispatcher.dispatch(crate::types::data::APIDataAction::SetTransactionsLoaded(
+                        true,
+                    ));
                     break;
                 }
                 Err(e) => {

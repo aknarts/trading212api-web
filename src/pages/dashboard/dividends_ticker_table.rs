@@ -60,7 +60,7 @@ pub fn dividends_ticker_table() -> Html {
 
     let data = (*api).clone();
 
-    for (ticker, sum) in data.dividends.sum_dividends_by_ticker() {
+    for (ticker, sum) in data.dividends.sum_by_ticker() {
         let account_currency = data
             .account
             .clone()

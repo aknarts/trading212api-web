@@ -39,7 +39,7 @@ pub fn dividends() -> Html {
     let mut plot = yew_plotly::plotly::Plot::new();
     let mut values = Vec::new();
     data.dividends
-        .sum_dividends_by_month()
+        .sum_by_month()
         .iter()
         .for_each(|(month, sum)| {
             values.push((month.to_string().clone(), sum.clone()));

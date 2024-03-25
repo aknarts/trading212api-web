@@ -1,4 +1,4 @@
-use tracing::warn;
+use tracing::{info, warn};
 use trading212::models::history_dividend_item::Type;
 
 #[derive(serde::Serialize, Clone, Debug, Default, PartialEq)]
@@ -10,6 +10,7 @@ pub struct APIData {
     pub instruments: Vec<trading212::models::tradeable_instrument::TradeableInstrument>,
     pub positions: Vec<trading212::models::position::Position>,
     pub dividends: crate::types::dividend::DividendData,
+    pub transactions: crate::types::transaction::TransactionData,
     pub pies: crate::types::pie::PiesData,
 }
 
@@ -28,6 +29,9 @@ pub enum APIDataAction {
         i64,
         trading212::models::account_bucket_instruments_detailed_response::AccountBucketInstrumentsDetailedResponse,
     ),
+    AddTransaction(trading212::models::history_transaction_item::HistoryTransactionItem),
+    SetTransactionsCursor(Option<i64>),
+    SetTransactionsLoaded(bool),
 }
 
 impl APIData {
@@ -87,12 +91,12 @@ impl yew::Reducible for APIData {
                 if let Type::Unknown = item.r#type {
                     warn!("Unknown dividend type, most likely a new type: {:?}", item)
                 }
-                new.dividends.add_dividend(item);
+                new.dividends.add(item);
                 new.timeouts
                     .insert("dividends".to_string(), time::OffsetDateTime::now_utc());
             }
             APIDataAction::SetDividendsCursor(cursor) => {
-                new.dividends.set_dividends_cursor(cursor);
+                new.dividends.set_cursor(cursor);
             }
             APIDataAction::SetDividendsLoaded(loaded) => {
                 new.dividends.set_loaded(loaded);
@@ -106,6 +110,17 @@ impl yew::Reducible for APIData {
                 new.pies.add_detail(id, details);
                 new.timeouts
                     .insert("pie_details".to_string(), time::OffsetDateTime::now_utc());
+            }
+            APIDataAction::AddTransaction(transaction) => {
+                new.transactions.add(transaction);
+                new.timeouts
+                    .insert("transactions".to_string(), time::OffsetDateTime::now_utc());
+            }
+            APIDataAction::SetTransactionsCursor(cursor) => {
+                new.transactions.set_cursor(cursor);
+            }
+            APIDataAction::SetTransactionsLoaded(loaded) => {
+                new.transactions.set_loaded(loaded);
             }
         }
         new.into()
