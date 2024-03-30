@@ -2,6 +2,7 @@ use std::fmt;
 use std::ops::Deref;
 
 use tracing::error;
+use trading212::error::Error;
 use trading212::{Client, Target};
 use yew::{hook, use_context, use_state, UseStateHandle};
 use yew_hooks::use_local_storage;
@@ -38,11 +39,38 @@ impl Handle {
         self.inner.client.clone()
     }
 
-    pub fn login(&self, token: String, live: bool) {
-        let client = trading212::Client::new(&token, trading212::Target::Live).unwrap();
+    pub fn login(&self, token: String, live: bool, proxy: Option<String>) {
+        let client = match &proxy {
+            None => trading212::Client::new(
+                &token,
+                if live {
+                    trading212::Target::Live
+                } else {
+                    trading212::Target::Demo
+                },
+            ),
+            Some(p) => {
+                let prxy = if p.ends_with("/") {
+                    p.clone()
+                } else {
+                    format!("{}/", p)
+                };
+                trading212::Client::new_with_proxy(
+                    &token,
+                    if live {
+                        trading212::Target::Live
+                    } else {
+                        trading212::Target::Demo
+                    },
+                    &prxy,
+                )
+            }
+        }
+        .unwrap();
         let t = Token {
             target: if live { Target::Live } else { Target::Demo },
             token,
+            proxy,
         };
         self.inner.set(UserInfo {
             token: Some(t.clone()),
@@ -102,7 +130,10 @@ pub fn use_refresh_user_context() -> UseStateHandle<UserInfo> {
     let token: Option<Token> = (&*storage).clone();
     let client = match token.clone() {
         None => None,
-        Some(t) => match Client::new(&t.token, t.target) {
+        Some(t) => match match t.proxy {
+            None => trading212::Client::new(&t.token, (&t.target).clone()),
+            Some(p) => trading212::Client::new_with_proxy(&t.token, (&t.target).clone(), &p),
+        } {
             Ok(c) => Some(c),
             Err(e) => {
                 error!("Error creating client: {:?}", e);

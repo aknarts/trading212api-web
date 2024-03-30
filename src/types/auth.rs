@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 pub struct Token {
     pub target: trading212::Target,
     pub token: String,
+    pub proxy: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Derivative, Clone, Default)]
