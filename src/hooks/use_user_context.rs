@@ -2,7 +2,6 @@ use std::fmt;
 use std::ops::Deref;
 
 use tracing::error;
-use trading212::error::Error;
 use trading212::{Client, Target};
 use yew::{hook, use_context, use_state, UseStateHandle};
 use yew_hooks::use_local_storage;

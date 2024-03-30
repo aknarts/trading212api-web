@@ -19,6 +19,7 @@ pub mod pies_table;
 mod positions;
 pub mod positions_table;
 mod transactions;
+mod transactions_table;
 
 #[function_component(Dashboard)]
 pub fn dashboard() -> Html {

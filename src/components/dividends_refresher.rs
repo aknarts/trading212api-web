@@ -1,5 +1,5 @@
 use http::Uri;
-use tracing::{error, info, warn};
+use tracing::{error, warn};
 use trading212::error::Error;
 use yew::prelude::*;
 

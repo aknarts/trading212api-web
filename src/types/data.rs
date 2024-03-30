@@ -1,4 +1,4 @@
-use tracing::{info, warn};
+use tracing::warn;
 use trading212::models::history_dividend_item::Type;
 
 #[derive(serde::Serialize, Clone, Debug, Default, PartialEq)]

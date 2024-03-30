@@ -41,6 +41,7 @@ impl DividendData {
         self.dividends.values().map(|d| d.amount).sum()
     }
 
+    #[allow(dead_code)]
     pub fn sum_in_euro(&self) -> f32 {
         self.dividends
             .values()
@@ -61,6 +62,7 @@ impl DividendData {
     }
 
     /// get sum of dividends not older than time::Duration
+    #[allow(dead_code)]
     pub fn sum_by_ticker_not_older_than(
         &self,
         duration: time::Duration,

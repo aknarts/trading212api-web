@@ -59,7 +59,7 @@ fn refresh(
                             Ok(uri) => {
                                 if let Some(query) = uri.query() {
                                     let mut pairs = form_urlencoded::parse(query.as_bytes());
-                                    while let Some((key, value)) = pairs.next() {
+                                    while let Some((_key, _value)) = pairs.next() {
                                         // FIXME: It is unclear what the cursor is at this point, when Trading212 fixes the docs and the endpoint this needs to get resolved
                                     }
                                 }

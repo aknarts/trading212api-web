@@ -44,7 +44,7 @@ pub fn transactions() -> Html {
             </div>
             <div class={classes!("accordion-collapse","collapse",active_class.0)}>
                 <div class="accordion-body">
-
+                    <crate::pages::dashboard::transactions_table::TransactionsTable />
                 </div>
             </div>
         </div>

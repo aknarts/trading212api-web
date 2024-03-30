@@ -47,6 +47,12 @@ pub fn pies_table() -> Html {
             .data_property("dividends")
             .header_class("user-select-none")
             .build(),
+        ColumnBuilder::new("mininvest")
+            .orderable(true)
+            .short_name("Min. Investment")
+            .data_property("mininvest")
+            .header_class("user-select-none")
+            .build(),
         ColumnBuilder::new("progress")
             .orderable(true)
             .short_name("Goal")
@@ -78,6 +84,14 @@ pub fn pies_table() -> Html {
             .clone();
 
         sum += pie.data.result.value;
+        let pie_mininvest = pie
+            .details
+            .clone()
+            .unwrap_or_default()
+            .instruments
+            .iter()
+            .map(|i| i.expected_share)
+            .fold(f32::MAX, |a, b| a.min(b));
         let line = PieLine {
             name: pie
                 .details
@@ -94,6 +108,7 @@ pub fn pies_table() -> Html {
                 .icon
                 .clone(),
             cash: pie.data.cash,
+            mininvest: 1.0 / pie_mininvest,
             result: pie.data.result.clone(),
             dividend: pie.data.dividend_details.clone(),
             progress: pie.data.progress.clone(),
@@ -137,6 +152,7 @@ struct PieLine {
     pub name: String,
     pub icon: Option<trading212::models::icon::Icon>,
     pub cash: f32,
+    pub mininvest: f32,
     pub result: trading212::models::investment_result::InvestmentResult,
     pub dividend: trading212::models::dividend_details::DividendDetails,
     pub progress: Option<f32>,
@@ -197,6 +213,16 @@ impl TableData for PieLine {
                 );
                 html! { { dividends.to_string() } }
             }
+            "mininvest" => {
+                let currency = rusty_money::iso::find(&self.account_currency)
+                    .unwrap_or(rusty_money::iso::EUR)
+                    .clone();
+                let mininvest = rusty_money::Money::from_decimal(
+                    rust_decimal::Decimal::from_f32(self.mininvest).unwrap_or_default(),
+                    &currency,
+                );
+                html! { { mininvest.to_string() } }
+            }
             "progress" => match self.progress {
                 None => {
                     html! { <></> }
@@ -220,6 +246,7 @@ impl TableData for PieLine {
             "ppl" => serde_value::to_value(&self.result.result),
             "value" => serde_value::to_value(&self.result.value),
             "dividends" => serde_value::to_value(&self.dividend.gained),
+            "mininvest" => serde_value::to_value(&self.mininvest),
             "progress" => serde_value::to_value(&self.progress.unwrap_or_default()),
             &_ => serde_value::to_value(""),
         };
