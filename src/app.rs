@@ -58,6 +58,7 @@ pub fn app() -> Html {
                         <crate::components::dividends_refresher::DividendsRefresher />
                         <crate::components::pies_refresher::PiesRefresher />
                         <crate::components::transactions_refresher::TransactionsRefresher />
+                        <crate::components::orders_refresher::OrdersRefresher />
                         <crate::pages::header::Header />
                         <main>
                             <Switch<Route> render={switch} />

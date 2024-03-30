@@ -32,6 +32,7 @@ pub fn exchange_refresher() -> Html {
 
 fn refresh(dispatcher: UseReducerDispatcher<crate::types::data::APIData>, user_ctx: Handle) {
     wasm_bindgen_futures::spawn_local(async move {
+        let mut retries = 0;
         while let Some(c) = user_ctx.client() {
             match c.get_exchanges().await {
                 Ok(exchanges) => {
@@ -44,7 +45,12 @@ fn refresh(dispatcher: UseReducerDispatcher<crate::types::data::APIData>, user_c
                     if let Error::Limit = e {
                         warn!("Failed to fetch exchanges, retrying");
                         yew::platform::time::sleep(std::time::Duration::from_secs(5)).await;
-                        continue;
+                        if retries < 10 {
+                            retries += 1;
+                            continue;
+                        }
+                        warn!("Failed to fetch exchanges after 10 retries");
+                        break;
                     }
                     error!("Failed to fetch exchanges: {:?}", e);
                     break;

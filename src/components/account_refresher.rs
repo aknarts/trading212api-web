@@ -1,3 +1,5 @@
+use tracing::{error, warn};
+use trading212::error::Error;
 use yew::prelude::*;
 
 use crate::hooks::use_user_context::Handle;
@@ -30,11 +32,28 @@ pub fn account_refresher() -> Html {
 
 fn refresh(dispatcher: UseReducerDispatcher<crate::types::data::APIData>, user_ctx: Handle) {
     wasm_bindgen_futures::spawn_local(async move {
-        if let Some(c) = user_ctx.client() {
-            if let Ok(account) = c.get_account_metadata().await {
-                dispatcher.dispatch(crate::types::data::APIDataAction::SetAccount(Some(
-                    account.clone(),
-                )));
+        let mut retries = 0;
+        while let Some(c) = user_ctx.client() {
+            match c.get_account_metadata().await {
+                Ok(account) => {
+                    dispatcher.dispatch(crate::types::data::APIDataAction::SetAccount(Some(
+                        account.clone(),
+                    )));
+                }
+                Err(e) => {
+                    if let Error::Limit = e {
+                        warn!("Failed to fetch account metadata, retrying");
+                        yew::platform::time::sleep(std::time::Duration::from_secs(5)).await;
+                        if retries < 5 {
+                            retries += 1;
+                            continue;
+                        }
+                        warn!("Failed to fetch account metadata after 5 retries");
+                        break;
+                    }
+                    error!("Failed to fetch account metadata: {:?}", e);
+                    break;
+                }
             }
         }
     });

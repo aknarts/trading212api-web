@@ -5,8 +5,8 @@ use yew::prelude::*;
 
 use crate::hooks::use_user_context::Handle;
 
-#[function_component(DividendsRefresher)]
-pub fn dividends_refresher() -> Html {
+#[function_component(OrdersRefresher)]
+pub fn orderss_refresher() -> Html {
     let user_ctx = crate::hooks::use_user_context::use_user_context();
     let data =
         use_context::<UseReducerHandle<crate::types::data::APIData>>().expect("no ctx found");
@@ -24,10 +24,10 @@ pub fn dividends_refresher() -> Html {
             move || {
                 let dispatcher = dispatcher.clone();
                 let user_ctx = user_ctx.clone();
-                let cursor = if (*data).dividends.loaded {
+                let cursor = if (*data).orders.loaded {
                     None
                 } else {
-                    (*data).dividends.cursor
+                    (*data).orders.cursor
                 };
                 refresh(dispatcher, user_ctx, cursor);
             },
@@ -45,15 +45,14 @@ fn refresh(
     wasm_bindgen_futures::spawn_local(async move {
         let mut retries = 0;
         while let Some(c) = user_ctx.client() {
-            match c.get_paid_dividends(Some(50), cursor, None).await {
-                Ok(dividends) => {
-                    for dividend in &dividends.items {
-                        dispatcher.dispatch(crate::types::data::APIDataAction::AddDividend(
-                            dividend.clone(),
-                        ));
+            match c.get_historical_orders(Some(50), cursor, None).await {
+                Ok(orders) => {
+                    for order in &orders.items {
+                        dispatcher
+                            .dispatch(crate::types::data::APIDataAction::AddOrder(order.clone()));
                     }
 
-                    if let Some(next) = dividends.next_page_path {
+                    if let Some(next) = orders.next_page_path {
                         match next.parse::<Uri>() {
                             Ok(uri) => {
                                 if let Some(query) = uri.query() {
@@ -62,7 +61,7 @@ fn refresh(
                                         if key == "cursor" {
                                             match value.to_string().parse::<i64>() {
                                                 Ok(cursor) => {
-                                                    dispatcher.dispatch(crate::types::data::APIDataAction::SetDividendsCursor(
+                                                    dispatcher.dispatch(crate::types::data::APIDataAction::SetOrdersCursor(
                                                         Some(cursor)
                                                     ));
                                                     return;
@@ -80,25 +79,23 @@ fn refresh(
                             }
                         };
                     }
-                    warn!("Most likely reached the end of dividends");
-                    dispatcher
-                        .dispatch(crate::types::data::APIDataAction::SetDividendsCursor(None));
-                    dispatcher
-                        .dispatch(crate::types::data::APIDataAction::SetDividendsLoaded(true));
+                    warn!("Most likely reached the end of orders");
+                    dispatcher.dispatch(crate::types::data::APIDataAction::SetOrdersCursor(None));
+                    dispatcher.dispatch(crate::types::data::APIDataAction::SetOrdersLoaded(true));
                     break;
                 }
                 Err(e) => {
                     if let Error::Limit = e {
-                        warn!("Failed to fetch dividends, retrying");
-                        yew::platform::time::sleep(std::time::Duration::from_secs(2)).await;
-                        if retries < 5 {
+                        warn!("Failed to fetch orders, retrying");
+                        yew::platform::time::sleep(std::time::Duration::from_secs(5)).await;
+                        if retries < 2 {
                             retries += 1;
                             continue;
                         }
-                        warn!("Failed to fetch dividends after 5 retries");
+                        warn!("Failed to fetch pies orders 2 retries");
                         break;
                     }
-                    error!("Failed to fetch dividends: {:?}", e);
+                    error!("Failed to fetch orders: {:?}", e);
                     break;
                 }
             }

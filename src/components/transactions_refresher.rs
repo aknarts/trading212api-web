@@ -24,11 +24,11 @@ pub fn transactions_refresher() -> Html {
             move || {
                 let dispatcher = dispatcher.clone();
                 let user_ctx = user_ctx.clone();
-                let cursor = if (*data).dividends.loaded {
+                let cursor = if (*data).transactions.loaded {
                     None
                 } else {
                     // FIXME: Pagination does not work yet, falling back to None
-                    //(*data).dividends.dividends_cursor
+                    //(*data).transactions.cursor
                     None
                 };
                 refresh(dispatcher, user_ctx, cursor);
@@ -45,6 +45,7 @@ fn refresh(
     cursor: Option<i64>,
 ) {
     wasm_bindgen_futures::spawn_local(async move {
+        let mut retries = 0;
         while let Some(c) = user_ctx.client() {
             match c.transaction_list(Some(50), cursor).await {
                 Ok(transactions) => {
@@ -69,7 +70,7 @@ fn refresh(
                             }
                         };
                     }
-                    warn!("Most likely reached the end of dividends");
+                    warn!("Most likely reached the end of transactions");
                     dispatcher.dispatch(crate::types::data::APIDataAction::SetTransactionsCursor(
                         None,
                     ));
@@ -80,11 +81,16 @@ fn refresh(
                 }
                 Err(e) => {
                     if let Error::Limit = e {
-                        warn!("Failed to fetch dividends, retrying");
-                        yew::platform::time::sleep(std::time::Duration::from_secs(11)).await;
-                        continue;
+                        warn!("Failed to fetch transactions, retrying");
+                        yew::platform::time::sleep(std::time::Duration::from_secs(5)).await;
+                        if retries < 2 {
+                            retries += 1;
+                            continue;
+                        }
+                        warn!("Failed to fetch transactions after 2 retries");
+                        break;
                     }
-                    error!("Failed to fetch dividends: {:?}", e);
+                    error!("Failed to fetch transactions: {:?}", e);
                     break;
                 }
             }

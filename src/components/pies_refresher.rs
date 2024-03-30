@@ -57,6 +57,7 @@ pub fn pies_refresher() -> Html {
 
 fn refresh(dispatcher: UseReducerDispatcher<crate::types::data::APIData>, user_ctx: Handle) {
     wasm_bindgen_futures::spawn_local(async move {
+        let mut retries = 0;
         while let Some(c) = user_ctx.client() {
             match c.get_all_pies().await {
                 Ok(pies) => {
@@ -69,7 +70,12 @@ fn refresh(dispatcher: UseReducerDispatcher<crate::types::data::APIData>, user_c
                     if let Error::Limit = e {
                         warn!("Failed to fetch pies, retrying");
                         yew::platform::time::sleep(std::time::Duration::from_secs(5)).await;
-                        continue;
+                        if retries < 5 {
+                            retries += 1;
+                            continue;
+                        }
+                        warn!("Failed to fetch pies after 5 retries");
+                        break;
                     }
                     error!("Failed to fetch pies: {:?}", e);
                     break;

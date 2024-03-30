@@ -32,6 +32,7 @@ pub fn positions_refresher() -> Html {
 
 fn refresh(dispatcher: UseReducerDispatcher<crate::types::data::APIData>, user_ctx: Handle) {
     wasm_bindgen_futures::spawn_local(async move {
+        let mut retries = 0;
         while let Some(c) = user_ctx.client() {
             match c.get_all_open_positions().await {
                 Ok(positions) => {
@@ -44,7 +45,12 @@ fn refresh(dispatcher: UseReducerDispatcher<crate::types::data::APIData>, user_c
                     if let Error::Limit = e {
                         warn!("Failed to fetch positions, retrying");
                         yew::platform::time::sleep(std::time::Duration::from_secs(5)).await;
-                        continue;
+                        if retries < 4 {
+                            retries += 1;
+                            continue;
+                        }
+                        warn!("Failed to fetch positions after 4 retries");
+                        break;
                     }
                     error!("Failed to fetch positions: {:?}", e);
                     break;

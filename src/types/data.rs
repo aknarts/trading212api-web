@@ -12,6 +12,7 @@ pub struct APIData {
     pub dividends: crate::types::dividend::DividendData,
     pub transactions: crate::types::transaction::TransactionData,
     pub pies: crate::types::pie::PiesData,
+    pub orders: crate::types::order::OrderData,
 }
 
 pub enum APIDataAction {
@@ -32,6 +33,9 @@ pub enum APIDataAction {
     AddTransaction(trading212::models::history_transaction_item::HistoryTransactionItem),
     SetTransactionsCursor(Option<i64>),
     SetTransactionsLoaded(bool),
+    AddOrder(trading212::models::historical_order::HistoricalOrder),
+    SetOrdersCursor(Option<i64>),
+    SetOrdersLoaded(bool),
 }
 
 impl APIData {
@@ -121,6 +125,17 @@ impl yew::Reducible for APIData {
             }
             APIDataAction::SetTransactionsLoaded(loaded) => {
                 new.transactions.set_loaded(loaded);
+            }
+            APIDataAction::AddOrder(order) => {
+                new.orders.add(order);
+                new.timeouts
+                    .insert("orders".to_string(), time::OffsetDateTime::now_utc());
+            }
+            APIDataAction::SetOrdersCursor(cursor) => {
+                new.orders.set_cursor(cursor);
+            }
+            APIDataAction::SetOrdersLoaded(loaded) => {
+                new.orders.set_loaded(loaded);
             }
         }
         new.into()

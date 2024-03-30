@@ -32,6 +32,7 @@ pub fn instrument_refresher() -> Html {
 
 fn refresh(dispatcher: UseReducerDispatcher<crate::types::data::APIData>, user_ctx: Handle) {
     wasm_bindgen_futures::spawn_local(async move {
+        let mut retries = 0;
         while let Some(c) = user_ctx.client() {
             match c.get_instruments().await {
                 Ok(instruments) => {
@@ -44,7 +45,12 @@ fn refresh(dispatcher: UseReducerDispatcher<crate::types::data::APIData>, user_c
                     if let Error::Limit = e {
                         warn!("Failed to fetch instruments, retrying");
                         yew::platform::time::sleep(std::time::Duration::from_secs(5)).await;
-                        continue;
+                        if retries < 20 {
+                            retries += 1;
+                            continue;
+                        }
+                        warn!("Failed to fetch instruments after 20 retries");
+                        break;
                     }
                     error!("Failed to fetch instruments: {:?}", e);
                     break;
