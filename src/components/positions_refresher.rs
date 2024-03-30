@@ -24,7 +24,7 @@ pub fn positions_refresher() -> Html {
                 let user_ctx = user_ctx.clone();
                 refresh(dispatcher, user_ctx);
             },
-            21000,
+            7000,
         );
     }
     html! { <></> }
@@ -44,12 +44,12 @@ fn refresh(dispatcher: UseReducerDispatcher<crate::types::data::APIData>, user_c
                 Err(e) => {
                     if let Error::Limit = e {
                         warn!("Failed to fetch positions, retrying");
-                        yew::platform::time::sleep(std::time::Duration::from_secs(5)).await;
-                        if retries < 4 {
+                        yew::platform::time::sleep(std::time::Duration::from_secs(2)).await;
+                        if retries < 2 {
                             retries += 1;
                             continue;
                         }
-                        warn!("Failed to fetch positions after 4 retries");
+                        warn!("Failed to fetch positions after 2 retries");
                         break;
                     }
                     error!("Failed to fetch positions: {:?}", e);

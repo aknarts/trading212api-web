@@ -91,11 +91,11 @@ fn refresh(
                     if let Error::Limit = e {
                         warn!("Failed to fetch dividends, retrying");
                         yew::platform::time::sleep(std::time::Duration::from_secs(2)).await;
-                        if retries < 5 {
+                        if retries < 4 {
                             retries += 1;
                             continue;
                         }
-                        warn!("Failed to fetch dividends after 5 retries");
+                        warn!("Failed to fetch dividends after 4 retries");
                         break;
                     }
                     error!("Failed to fetch dividends: {:?}", e);
