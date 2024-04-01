@@ -65,16 +65,9 @@ pub fn pies() -> Html {
             </div>
             <div class={classes!("accordion-collapse","collapse",active_class.0)}>
                 <div class="accordion-body">
-                    <ul class="nav nav-tabs">
-                        <li class="nav-item">
-                            <a class="nav-link active" aria-current="page" href="#">{"Overview"}</a>
-                        </li>
-                    </ul>
-                    <div class="tab-content">
-                        <div class="tab-pane fade show active" id="overview">
-                            <crate::pages::dashboard::pies_table::PiesTable />
-                        </div>
-                    </div>
+                    <crate::components::tabs::Tabs tabs={vec!["Overview".to_string()]}>
+                        <crate::pages::dashboard::pies_table::PiesTable />
+                    </crate::components::tabs::Tabs>
                 </div>
             </div>
         </div>
