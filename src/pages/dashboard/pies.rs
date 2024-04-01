@@ -34,29 +34,47 @@ pub fn pies() -> Html {
         };
     }
 
+    let incomplete_num = data.pies.get_incomplete_ids().len();
+    let complete_num = data.pies.pies.len();
+    let progress = (complete_num - incomplete_num) as f64 / complete_num as f64 * 100.0;
+
     html!(
         <div class="accordion-item">
             <div class="accordion-header">
                 <button class={classes!("accordion-button", active_class.1)} type="button" {onclick}>
                     <span class="fs-4 me-2">{ "Pies "} </span>
-                    <span class={classes!("d-inline", "badge","rounded-pill", "text-bg-secondary")}>{pies.len()}</span>
-                    {
-                        // TODO: This can be a progress bar, we know the numbers here
-                        if !data.pies.get_incomplete_ids().is_empty() {
-                            html!{
-                                <span class="spinner-border" role="status">
-                                     <span class="visually-hidden">{ "Loading..." }</span>
-                                </span>
-                            }
+                    <span class={classes!("d-inline", "badge","rounded-pill", "text-bg-secondary")}>{
+                        if pies.len() == complete_num {
+                            format!("{}", pies.len())
                         } else {
-                            html!{<></>}
+                            format!("{}/{}",pies.len(), complete_num)
                         }
-                    }
+                    }</span>
                 </button>
+                {
+                    if incomplete_num > 0 {
+                        html!{
+                            <div class="progress" style="height: 2px">
+                              <div class="progress-bar progress-bar-striped progress-bar-animated" style={format!("width: {}%", progress)}></div>
+                            </div>
+                        }
+                    } else {
+                        html!{<></>}
+                    }
+                }
             </div>
             <div class={classes!("accordion-collapse","collapse",active_class.0)}>
                 <div class="accordion-body">
-                    <crate::pages::dashboard::pies_table::PiesTable />
+                    <ul class="nav nav-tabs">
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="#">{"Overview"}</a>
+                        </li>
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="overview">
+                            <crate::pages::dashboard::pies_table::PiesTable />
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
