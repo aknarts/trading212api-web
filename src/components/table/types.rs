@@ -81,7 +81,7 @@ impl ColumnBuilder {
     }
 }
 
-#[derive(Copy, Clone, Eq, PartialEq)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum TableOrder {
     Unordered = 0,
     Ascending,
@@ -105,20 +105,7 @@ impl TableOrder {
     }
 }
 
-#[derive(Clone, Eq, PartialEq, Default)]
+#[derive(Clone, Eq, PartialEq, Default, Debug)]
 pub struct TableState {
     pub order: Vec<TableOrder>,
-}
-
-/// The a table with columns holding data.
-#[derive(Clone, Eq, PartialEq, Default)]
-pub struct Table<T>
-where
-    T: TableData + fmt::Debug,
-{
-    /// The order of the columns determines the order in which they are displayed.
-    pub columns: Vec<Column>,
-    pub data: Vec<T>,
-    pub state: TableState,
-    pub orderable: bool,
 }

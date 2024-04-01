@@ -37,10 +37,12 @@ impl TransactionData {
         self.loaded = loaded;
     }
 
+    #[allow(dead_code)]
     pub fn sum(&self) -> f32 {
         self.transactions.values().map(|d| d.amount).sum()
     }
 
+    #[allow(dead_code)]
     pub fn sum_by_type(
         &self,
     ) -> std::collections::HashMap<trading212::models::history_transaction_item::Type, f32> {
@@ -55,6 +57,7 @@ impl TransactionData {
     }
 
     /// get sum of dividends not older than time::Duration
+    #[allow(dead_code)]
     pub fn sum_by_type_not_older_than(
         &self,
         duration: time::Duration,
@@ -71,7 +74,7 @@ impl TransactionData {
         }
         sum
     }
-
+    #[allow(dead_code)]
     pub fn sum_by_month(&self) -> std::collections::HashMap<String, f32> {
         let mut sum = std::collections::HashMap::new();
         for transaction in self.transactions.values() {

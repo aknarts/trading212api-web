@@ -6,8 +6,8 @@ use yew::{
     UseReducerHandle,
 };
 
-use crate::components::table::types::{ColumnBuilder, Table, TableData};
-use crate::components::table::Options;
+use crate::components::table::types::{ColumnBuilder, TableData};
+use crate::components::table::{Options, Table};
 use crate::types::data::APIData;
 
 #[function_component(PiesTable)]
@@ -73,8 +73,6 @@ pub fn pies_table() -> Html {
     let data = (*api).clone();
     let pies = data.pies.get_complete_pies();
 
-    let mut sum = 0.0;
-
     for pie in &pies {
         let account_currency = data
             .account
@@ -83,7 +81,6 @@ pub fn pies_table() -> Html {
             .currency_code
             .clone();
 
-        sum += pie.data.result.value;
         let pie_mininvest = pie
             .details
             .clone()
@@ -128,8 +125,6 @@ pub fn pies_table() -> Html {
         })
     };
 
-    let int_sum = (sum * 100.0).round() as usize;
-
     html!(<>
             <div class="flex-grow-1 p-2 input-group mb-2">
                 <span class="input-group-text">
@@ -137,7 +132,7 @@ pub fn pies_table() -> Html {
                 </span>
                 <input class="form-control" type="text" id="search" placeholder="Search" oninput={oninput_search} />
             </div>
-            <Table<PieLine> key={int_sum+pies.len()} {options} {search} classes={classes!("table", "table-hover")} columns={columns} data={table_data} orderable={true}/>
+            <Table<PieLine> {options} {search} classes={classes!("table", "table-hover")} columns={columns} data={table_data} orderable={true}/>
         </>)
 }
 

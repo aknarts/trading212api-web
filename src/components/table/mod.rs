@@ -1,12 +1,11 @@
-use std::cmp::Reverse;
 use std::fmt::Debug;
-
+use types::{Column, TableData, TableOrder, TableState};
 use yew::html;
 use yew::prelude::*;
 
-use types::{Column, Table, TableData, TableOrder, TableState};
-
+mod body;
 pub mod error;
+mod head;
 mod macros;
 pub mod types;
 
@@ -37,135 +36,93 @@ where
 }
 
 #[derive(Debug)]
-pub enum Msg {
-    SortColumn(usize),
-}
-
-impl<T> Component for Table<T>
+pub enum Msg<T>
 where
     T: TableData + Debug,
 {
-    type Message = Msg;
-    type Properties = Props<T>;
+    SortColumn(usize),
+    SetData(Vec<T>),
+}
 
-    fn create(ctx: &Context<Self>) -> Self {
-        let props = ctx.props();
-        let column_number = props.columns.len();
-        Self {
-            columns: props.columns.clone(),
-            data: props.data.clone(),
-            orderable: props.orderable,
-            state: TableState {
-                order: vec![TableOrder::default(); column_number],
-            },
-        }
-    }
+#[derive(Clone, Eq, PartialEq, Default)]
+pub struct Data<T>
+where
+    T: TableData + Debug,
+{
+    columns: Vec<Column>,
+    data: Vec<T>,
+    orderable: bool,
+    state: TableState,
+}
 
-    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
-        match msg {
+impl<T> Reducible for Data<T>
+where
+    T: TableData + Debug,
+{
+    type Action = Msg<T>;
+
+    fn reduce(self: std::rc::Rc<Self>, action: Self::Action) -> std::rc::Rc<Self> {
+        let mut new = (*self).clone();
+        match action {
             Msg::SortColumn(i) => {
-                use TableOrder::{Ascending, Descending, Unordered};
-
-                for (j, x) in self.state.order.iter_mut().enumerate() {
+                use TableOrder::Unordered;
+                for (j, x) in new.state.order.iter_mut().enumerate() {
                     if j == i {
                         *x = x.rotate();
                     } else {
                         *x = Unordered;
                     }
                 }
-
-                match self.columns.get(i) {
-                    None => false,
-                    Some(column) => match column.data_property.as_ref() {
-                        Some(f) => match self.state.order.get(i) {
-                            Some(order) => {
-                                match order {
-                                    Unordered => self.data.sort_by_cached_key(|x| {
-                                        x.get_field_as_value(&self.columns.first().unwrap().name)
-                                            .unwrap()
-                                    }),
-                                    Ascending => self
-                                        .data
-                                        .sort_by_cached_key(|x| x.get_field_as_value(f).unwrap()),
-                                    Descending => self.data.sort_by_cached_key(|x| {
-                                        Reverse(x.get_field_as_value(f).unwrap())
-                                    }),
-                                }
-                                true
-                            }
-                            None => false,
-                        },
-                        None => false,
-                    },
-                }
             }
-        }
-    }
-
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        let search = ctx.props().search.clone();
-        let classes = ctx.props().classes.clone();
-        html!(
-            <table class={classes!(classes)}>
-                <thead>
-                    { for self.columns.iter().enumerate().map(|(i, col)| self.view_column(ctx, i, col)) }
-                </thead>
-                <tbody>
-                    { for self.data.iter().map(|d| self.view_row(d, search.clone())) }
-                </tbody>
-            </table>
-        )
+            Msg::SetData(data) => {
+                new.data = data;
+            }
+        };
+        new.into()
     }
 }
 
-impl<T> Table<T>
+#[derive(Clone, Eq, PartialEq, Default)]
+pub struct Search {
+    pub search: Option<String>,
+}
+
+#[function_component(Table)]
+pub fn table<T>(props: &Props<T>) -> Html
 where
     T: TableData + Debug,
 {
-    fn view_column<'a>(&'a self, ctx: &Context<Self>, index: usize, column: &'a Column) -> Html {
-        let get_header_sorting_class = |index: usize| {
-            use TableOrder::{Ascending, Descending, Unordered};
+    let data = props.data.clone();
+    let columns = props.columns.clone();
+    let column_number = props.columns.len();
+    let orderable = props.orderable;
+    let state = use_reducer_eq(|| Data {
+        columns,
+        data: vec![],
+        orderable,
+        state: TableState {
+            order: vec![TableOrder::default(); column_number],
+        },
+    });
 
-            self.state.order.get(index).and_then(|order| match order {
-                Unordered => ctx.props().options.unordered_class.clone(),
-                Ascending => ctx.props().options.ascending_class.clone(),
-                Descending => ctx.props().options.descending_class.clone(),
-            })
-        };
+    state.dispatch(Msg::SetData(data));
 
-        let th_view = |child| {
-            if self.orderable && column.orderable {
-                html!( <th class={classes!(column.header_classes.clone())} scope="col" onclick={ctx.link().callback(move |_| Msg::SortColumn(index))}>{ child }</th> )
-            } else {
-                html!( <th class={classes!(column.header_classes.clone())} scope="col">{ child }</th> )
-            }
-        };
+    let search = Search {
+        search: props.search.clone(),
+    };
+    let classes = props.classes.clone();
+    let options = props.options.clone();
 
-        th_view(html!(
-                <span>
-                    { column }
-                    if self.orderable && column.orderable {
-                        <i class={classes!(ctx.props().options.orderable_classes.clone(), get_header_sorting_class(index))}></i>
-                    }
-                </span>
-        ))
-    }
-
-    fn view_row(&self, row: &T, search: Option<String>) -> Html {
-        if row.matches_search(search) {
-            html!(
-                <tr>
-                    {
-                        for self.columns.iter()
-                            .map(|c| { c.data_property.as_ref().unwrap_or(&c.name) })
-                            .map(|name| { row.get_field_as_html(name) })
-                            .filter_map(std::result::Result::ok)
-                            .map(|el| html! { <td>{ el }</td> })
-                    }
-                </tr>
-            )
-        } else {
-            html!()
-        }
+    html! {
+        <ContextProvider<UseReducerHandle<Data<T>>> context={state}>
+            <table class={classes!(classes)}>
+                <ContextProvider<Options> context={options}>
+                    <head::TableHead<T> />
+                </ContextProvider<Options>>
+                <ContextProvider<Search> context={search}>
+                    <body::TableBody<T> />
+                </ContextProvider<Search>>
+            </table>
+        </ContextProvider<UseReducerHandle<Data<T>>>>
     }
 }

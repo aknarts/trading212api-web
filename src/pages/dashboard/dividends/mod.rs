@@ -1,6 +1,5 @@
 use yew::{
     classes, function_component, html, use_context, use_state, Callback, Html, UseReducerHandle,
-    UseStateHandle,
 };
 
 use crate::types::data::APIData;
@@ -9,33 +8,18 @@ mod ticker_table;
 
 #[function_component(DividendsCard)]
 pub fn dividends() -> Html {
-    let theme = use_context::<UseStateHandle<crate::types::theme::Theme>>().expect("no ctx found");
     let api = use_context::<UseReducerHandle<APIData>>().expect("no ctx found");
     let active = use_state(|| false);
-    let active_tab = use_state(|| 0);
     let active_class = if *active {
         (Some("show"), None)
     } else {
         (None, Some("collapsed"))
     };
 
-    let active_tab_id = *active_tab;
-    let active_tab_class = match active_tab_id {
-        0 => (("active", vec!["show", "active"]), ("", vec![])),
-        1 => (("", vec![]), ("active", vec!["show", "active"])),
-        _ => {
-            unreachable!()
-        }
-    };
-
     let onclick = { Callback::from(move |_| active.set(!*active)) };
 
     let data = (*api).clone();
     let dividends = data.dividends.dividends.clone();
-
-    let handle_tabs = Callback::from(move |id: i32| {
-        active_tab.set(id);
-    });
 
     if dividends.is_empty() {
         return html! {

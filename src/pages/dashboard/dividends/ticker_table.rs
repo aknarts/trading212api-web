@@ -6,8 +6,8 @@ use yew::{
     UseReducerHandle,
 };
 
-use crate::components::table::types::{ColumnBuilder, Table, TableData};
-use crate::components::table::Options;
+use crate::components::table::types::{ColumnBuilder, TableData};
+use crate::components::table::{Options, Table};
 use crate::types::data::APIData;
 
 #[function_component(DividendsTickerTable)]
@@ -115,7 +115,7 @@ pub fn dividends_ticker_table() -> Html {
                 </span>
                 <input class="form-control" type="text" id="search" placeholder="Search" oninput={oninput_search} />
             </div>
-            <Table<DividendLine> key={data.dividends.dividends.len()+data.instruments.len()}  {options} {search} classes={classes!("table", "table-hover")} columns={columns} data={table_data} orderable={true}/>
+            <Table<DividendLine> options={options.clone()} search={search.clone()} classes={classes!("table", "table-hover")} columns={columns.clone()} data={table_data.clone()} orderable={true}/>
         </>)
 }
 

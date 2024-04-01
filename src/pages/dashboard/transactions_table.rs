@@ -7,8 +7,8 @@ use yew::{
     UseReducerHandle,
 };
 
-use crate::components::table::types::{ColumnBuilder, Table, TableData};
-use crate::components::table::Options;
+use crate::components::table::types::{ColumnBuilder, TableData};
+use crate::components::table::{Options, Table};
 use crate::types::data::APIData;
 
 #[function_component(TransactionsTable)]
@@ -50,8 +50,6 @@ pub fn transactions_table() -> Html {
     let data = (*api).clone();
     let transactions = data.transactions.clone();
 
-    let mut sum = 0.0;
-
     for (_, transaction) in &transactions.transactions {
         let account_currency = data
             .account
@@ -59,7 +57,6 @@ pub fn transactions_table() -> Html {
             .unwrap_or_default()
             .currency_code
             .clone();
-        sum += transaction.amount;
         let line = TransactionLine {
             date: transaction.date_time,
             r#type: transaction.r#type,
@@ -80,8 +77,6 @@ pub fn transactions_table() -> Html {
         })
     };
 
-    let int_sum = (sum * 100.0).round() as usize;
-
     html!(<>
             <div class="flex-grow-1 p-2 input-group mb-2">
                 <span class="input-group-text">
@@ -89,7 +84,7 @@ pub fn transactions_table() -> Html {
                 </span>
                 <input class="form-control" type="text" id="search" placeholder="Search" oninput={oninput_search} />
             </div>
-            <Table<TransactionLine> key={transactions.transactions.len()+int_sum}  {options} {search} classes={classes!("table", "table-hover")} columns={columns} data={table_data} orderable={true}/>
+            <Table<TransactionLine> {options} {search} classes={classes!("table", "table-hover")} columns={columns} data={table_data} orderable={true}/>
         </>)
 }
 
