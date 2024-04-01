@@ -1,7 +1,4 @@
-use yew::{
-    classes, function_component, html, use_context, use_state, Callback, Html, UseReducerHandle,
-    UseStateHandle,
-};
+use yew::{function_component, html, use_context, Html, UseReducerHandle, UseStateHandle};
 
 use crate::types::data::APIData;
 

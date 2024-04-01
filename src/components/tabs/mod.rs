@@ -1,7 +1,5 @@
-use yew::{
-    classes, function_component, html, use_context, use_state, Callback, Children, Html,
-    Properties, UseReducerHandle, UseStateHandle,
-};
+use yew::{classes, function_component, html, use_state, Callback, Children, Html, Properties};
+
 #[derive(Properties, Clone, PartialEq)]
 pub struct Props {
     pub children: Children,
