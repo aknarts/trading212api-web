@@ -9,4 +9,5 @@ pub mod dividends_refresher;
 pub mod orders_refresher;
 pub mod pies_refresher;
 pub mod table;
+pub mod tabs;
 pub mod transactions_refresher;

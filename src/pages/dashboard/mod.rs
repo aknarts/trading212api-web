@@ -11,7 +11,6 @@ use crate::pages::dashboard::transactions::TransactionsCard;
 
 mod cash;
 mod dividends;
-pub mod dividends_ticker_table;
 pub mod exchange;
 mod exchanges;
 mod instruments;
