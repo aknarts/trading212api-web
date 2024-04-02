@@ -49,7 +49,7 @@ pub fn app() -> Html {
         <ContextProvider<UseStateHandle<crate::types::theme::Theme>> context={ctx}>
             <ContextProvider<UseReducerHandle<APIData>> context={data}>
                 <UserContextProvider>
-                    <BrowserRouter>
+                    <HashRouter>
                         <crate::components::cash_refresher::CashRefresher />
                         <crate::components::account_refresher::AccountRefresher />
                         <crate::components::exchange_refresher::ExchangeRefresher />
@@ -63,7 +63,7 @@ pub fn app() -> Html {
                         <main>
                             <Switch<Route> render={switch} />
                         </main>
-                    </BrowserRouter>
+                    </HashRouter>
                 </UserContextProvider>
             </ContextProvider<UseReducerHandle<APIData>>>
         </ContextProvider<UseStateHandle<crate::types::theme::Theme>>>
