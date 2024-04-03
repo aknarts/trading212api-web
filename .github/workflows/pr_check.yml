@@ -15,19 +15,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - name: install toolchain
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: stable
-        target: wasm32-unknown-unknown
-        override: true
-        profile: minimal
-    - name: Install trunk
-      uses: jetli/trunk-action@v0.1.0
-      with:
-        version: 'latest'
-    - name: Build
-      run: trunk build
-    - name: Run tests
-      run: cargo test --verbose
+      - uses: actions/checkout@v4
+      - name: Restore cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin
+            ~/.cargo/git
+            ~/.cargo/registry
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: install toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+          target: wasm32-unknown-unknown
+      - name: Install trunk
+        uses: jetli/trunk-action@v0.4.0
+        with:
+          version: 'latest'
+      - name: Build
+        run: trunk build
+      - name: Run tests
+        run: cargo test --verbose
