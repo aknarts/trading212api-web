@@ -57,10 +57,10 @@ pub fn dividends() -> Html {
             </div>
             <div class={classes!("accordion-collapse","collapse",active_class.0)}>
                 <div class="accordion-body">
-                    <crate::components::tabs::Tabs tabs={vec!["Overview".to_string(), "Plot".to_string()]}>
+                    <yew_custom_components::tabs::Tabs tabs={vec!["Overview".to_string(), "Plot".to_string()]}>
                         <ticker_table::DividendsTickerTable/>
                         <plot::DividendsPlot/>
-                    </crate::components::tabs::Tabs>
+                    </yew_custom_components::tabs::Tabs>
                 </div>
             </div>
         </div>

@@ -7,9 +7,9 @@ use yew::{
     UseReducerHandle,
 };
 
-use crate::components::table::types::{ColumnBuilder, TableData};
-use crate::components::table::{Options, Table};
 use crate::types::data::APIData;
+use yew_custom_components::table::types::{ColumnBuilder, TableData};
+use yew_custom_components::table::{Options, Table};
 
 #[function_component(TransactionsTable)]
 pub fn transactions_table() -> Html {
@@ -126,7 +126,10 @@ impl PartialOrd for TransactionLine {
 }
 
 impl TableData for TransactionLine {
-    fn get_field_as_html(&self, field_name: &str) -> crate::components::table::error::Result<Html> {
+    fn get_field_as_html(
+        &self,
+        field_name: &str,
+    ) -> yew_custom_components::table::error::Result<Html> {
         let html = match field_name {
             "date" => {
                 html! { { self.date.to_string() } }
@@ -152,7 +155,7 @@ impl TableData for TransactionLine {
     fn get_field_as_value(
         &self,
         field_name: &str,
-    ) -> crate::components::table::error::Result<serde_value::Value> {
+    ) -> yew_custom_components::table::error::Result<serde_value::Value> {
         let value = match field_name {
             "date" => serde_value::to_value(self.date.to_string()),
             "type" => serde_value::to_value(format!("{:?}", self.r#type)),

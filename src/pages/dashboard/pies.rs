@@ -65,9 +65,9 @@ pub fn pies() -> Html {
             </div>
             <div class={classes!("accordion-collapse","collapse",active_class.0)}>
                 <div class="accordion-body">
-                    <crate::components::tabs::Tabs tabs={vec!["Overview".to_string()]}>
+                    <yew_custom_components::tabs::Tabs tabs={vec!["Overview".to_string()]}>
                         <crate::pages::dashboard::pies_table::PiesTable />
-                    </crate::components::tabs::Tabs>
+                    </yew_custom_components::tabs::Tabs>
                 </div>
             </div>
         </div>
