@@ -1,6 +1,6 @@
 use time::OffsetDateTime;
 
-#[derive(serde::Serialize, Clone, Debug, Default, PartialEq)]
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug, Default, PartialEq)]
 pub struct PiesData {
     pub pies: std::collections::HashMap<i64, Pie>,
 }
@@ -59,7 +59,7 @@ impl PiesData {
     }
 }
 
-#[derive(serde::Serialize, Clone, Debug, PartialEq)]
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug, PartialEq)]
 pub struct Pie {
     pub data: trading212::models::account_bucket_result_response::AccountBucketResultResponse,
     pub details: Option<trading212::models::account_bucket_instruments_detailed_response::AccountBucketInstrumentsDetailedResponse>,

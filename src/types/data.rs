@@ -1,7 +1,21 @@
+use crate::types::auth::Token;
+use gloo_storage::{LocalStorage, Storage};
+use lazy_static::lazy_static;
+use std::sync::{LockResult, RwLock, RwLockReadGuard};
 use tracing::warn;
 use trading212::models::history_dividend_item::Type;
+use yew_hooks::use_local_storage;
 
-#[derive(serde::Serialize, Clone, Debug, Default, PartialEq)]
+const CACHE_KEY: &str = "trading212api.cache";
+
+lazy_static! {
+    pub static ref CACHE: RwLock<Option<APIData>> = {
+        LocalStorage::get(CACHE_KEY)
+            .map_or_else(|_| RwLock::new(None), |data| RwLock::new(Some(data)))
+    };
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug, PartialEq)]
 pub struct APIData {
     pub cash: Option<trading212::models::cash::Cash>,
     pub timeouts: std::collections::HashMap<String, time::OffsetDateTime>,
@@ -17,6 +31,7 @@ pub struct APIData {
 
 pub enum APIDataAction {
     Init,
+    Save,
     SetCash(Option<trading212::models::cash::Cash>),
     SetAccount(Option<trading212::models::account::Account>),
     SetExchanges(Vec<trading212::models::exchange::Exchange>),
@@ -38,7 +53,36 @@ pub enum APIDataAction {
     SetOrdersLoaded(bool),
 }
 
+impl Default for APIData {
+    fn default() -> Self {
+        if let Ok(d) = CACHE.read() {
+            if let Some(data) = d.clone() {
+                return data;
+            }
+        };
+        Self {
+            cash: Default::default(),
+            timeouts: Default::default(),
+            account: Default::default(),
+            exchanges: Default::default(),
+            instruments: Default::default(),
+            positions: Default::default(),
+            dividends: Default::default(),
+            transactions: Default::default(),
+            pies: Default::default(),
+            orders: Default::default(),
+        }
+    }
+}
+
 impl APIData {
+    pub fn save(&self) {
+        if let Ok(mut d) = CACHE.write() {
+            *d = Some(self.clone());
+            LocalStorage::set(CACHE_KEY, self).expect("Failed to save cache");
+        }
+    }
+
     pub fn get_instrument_by_ticker(
         &self,
         ticker: &str,
@@ -65,6 +109,10 @@ impl yew::Reducible for APIData {
         match action {
             APIDataAction::Init => {
                 new = Self::default();
+            }
+            APIDataAction::Save => {
+                (*self).save();
+                return self;
             }
             APIDataAction::SetCash(cash) => {
                 new.cash = cash;

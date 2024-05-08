@@ -1,7 +1,7 @@
 use time::format_description;
 use uuid::Uuid;
 
-#[derive(serde::Serialize, Clone, Debug, PartialEq)]
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug, PartialEq)]
 pub struct DividendData {
     pub dividends: std::collections::HashMap<
         Uuid,

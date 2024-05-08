@@ -1,4 +1,4 @@
-#[derive(serde::Serialize, Clone, Debug, PartialEq)]
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug, PartialEq)]
 pub struct OrderData {
     pub orders:
         std::collections::HashMap<i64, trading212::models::historical_order::HistoricalOrder>,

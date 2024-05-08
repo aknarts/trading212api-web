@@ -45,6 +45,15 @@ pub fn app() -> Html {
         Some(())
     });
 
+    let dispatcher = data.dispatcher();
+    yew_hooks::use_interval(
+        move || {
+            let dispatcher = dispatcher.clone();
+            dispatcher.dispatch(crate::types::data::APIDataAction::Save);
+        },
+        5000,
+    );
+
     html! {
         <ContextProvider<UseStateHandle<crate::types::theme::Theme>> context={ctx}>
             <ContextProvider<UseReducerHandle<APIData>> context={data}>
