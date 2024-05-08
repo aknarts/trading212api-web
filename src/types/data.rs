@@ -1,10 +1,8 @@
-use crate::types::auth::Token;
 use gloo_storage::{LocalStorage, Storage};
 use lazy_static::lazy_static;
-use std::sync::{LockResult, RwLock, RwLockReadGuard};
+use std::sync::RwLock;
 use tracing::warn;
 use trading212::models::history_dividend_item::Type;
-use yew_hooks::use_local_storage;
 
 const CACHE_KEY: &str = "trading212api.cache";
 

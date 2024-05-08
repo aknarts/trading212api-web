@@ -3,6 +3,7 @@ use yew::{
 };
 
 use crate::types::data::APIData;
+mod history_table;
 mod plot;
 mod ticker_table;
 
@@ -57,8 +58,9 @@ pub fn dividends() -> Html {
             </div>
             <div class={classes!("accordion-collapse","collapse",active_class.0)}>
                 <div class="accordion-body">
-                    <yew_custom_components::tabs::Tabs tabs={vec!["Overview".to_string(), "Plot".to_string()]}>
+                    <yew_custom_components::tabs::Tabs tabs={vec!["Overview".to_string(),"History".to_string(), "Plot".to_string()]}>
                         <ticker_table::DividendsTickerTable/>
+                        <history_table::DividendsHistoryTable/>
                         <plot::DividendsPlot/>
                     </yew_custom_components::tabs::Tabs>
                 </div>
