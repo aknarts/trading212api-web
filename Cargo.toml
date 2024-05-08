@@ -1,6 +1,6 @@
 [package]
 name = "trading212-web"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "Web interface for the Trading 212 API"
 readme = "README.md"
