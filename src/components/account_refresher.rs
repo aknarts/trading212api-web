@@ -32,7 +32,6 @@ pub fn account_refresher() -> Html {
 
 fn refresh(dispatcher: UseReducerDispatcher<crate::types::data::APIData>, user_ctx: Handle) {
     wasm_bindgen_futures::spawn_local(async move {
-        let mut retries = 0;
         while let Some(c) = user_ctx.client() {
             match c.get_account_metadata().await {
                 Ok(account) => {
