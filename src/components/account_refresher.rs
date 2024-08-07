@@ -42,13 +42,7 @@ fn refresh(dispatcher: UseReducerDispatcher<crate::types::data::APIData>, user_c
                 }
                 Err(e) => {
                     if let Error::Limit = e {
-                        warn!("Failed to fetch account metadata, retrying");
-                        yew::platform::time::sleep(std::time::Duration::from_secs(5)).await;
-                        if retries < 4 {
-                            retries += 1;
-                            continue;
-                        }
-                        warn!("Failed to fetch account metadata after 4 retries");
+                        warn!("Failed to fetch account metadata, timout");
                         break;
                     }
                     error!("Failed to fetch account metadata: {:?}", e);
