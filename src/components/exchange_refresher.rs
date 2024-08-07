@@ -24,7 +24,7 @@ pub fn exchange_refresher() -> Html {
                 let user_ctx = user_ctx.clone();
                 refresh(dispatcher, user_ctx);
             },
-            61000,
+            70000,
         );
     }
     html! { <></> }

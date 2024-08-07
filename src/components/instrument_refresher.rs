@@ -24,7 +24,7 @@ pub fn instrument_refresher() -> Html {
                 let user_ctx = user_ctx.clone();
                 refresh(dispatcher, user_ctx);
             },
-            120000,
+            130000,
         );
     }
     html! { <></> }

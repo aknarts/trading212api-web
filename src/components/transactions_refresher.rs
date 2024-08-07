@@ -33,7 +33,7 @@ pub fn transactions_refresher() -> Html {
                 };
                 refresh(dispatcher, user_ctx, cursor);
             },
-            11000,
+            17000,
         );
     }
     html! { <></> }

@@ -31,7 +31,7 @@ pub fn orderss_refresher() -> Html {
                 };
                 refresh(dispatcher, user_ctx, cursor);
             },
-            11000,
+            18000,
         );
     }
     html! { <></> }

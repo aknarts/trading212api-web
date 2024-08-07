@@ -31,7 +31,7 @@ pub fn dividends_refresher() -> Html {
                 };
                 refresh(dispatcher, user_ctx, cursor);
             },
-            11000,
+            15000,
         );
     }
     html! { <></> }

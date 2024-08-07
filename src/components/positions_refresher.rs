@@ -24,7 +24,7 @@ pub fn positions_refresher() -> Html {
                 let user_ctx = user_ctx.clone();
                 refresh(dispatcher, user_ctx);
             },
-            7000,
+            12000,
         );
     }
     html! { <></> }

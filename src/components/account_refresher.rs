@@ -24,7 +24,7 @@ pub fn account_refresher() -> Html {
                 let user_ctx = user_ctx.clone();
                 refresh(dispatcher, user_ctx);
             },
-            31000,
+            41000,
         );
     }
     html! { <></> }

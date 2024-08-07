@@ -22,7 +22,7 @@ pub fn cash_refresher() -> Html {
                 let user_ctx = user_ctx.clone();
                 refresh(dispatcher, user_ctx);
             },
-            3000,
+            5000,
         );
     }
     html! { <></> }

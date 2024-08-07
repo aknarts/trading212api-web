@@ -25,7 +25,7 @@ pub fn pies_refresher() -> Html {
                     let user_ctx = user_ctx.clone();
                     refresh(dispatcher, user_ctx);
                 },
-                31000,
+                38000,
             );
         }
 
@@ -48,7 +48,7 @@ pub fn pies_refresher() -> Html {
                         }
                     };
                 },
-                6000,
+                9000,
             );
         }
     }
