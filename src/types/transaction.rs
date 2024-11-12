@@ -7,7 +7,7 @@ pub struct TransactionData {
         Uuid,
         trading212::models::history_transaction_item::HistoryTransactionItem,
     >,
-    pub cursor: Option<i64>,
+    pub cursor: Option<(String, String)>,
     pub loaded: bool,
 }
 
@@ -16,7 +16,7 @@ impl Default for TransactionData {
         Self {
             transactions: Default::default(),
             cursor: Default::default(),
-            loaded: true,
+            loaded: false,
         }
     }
 }
@@ -29,7 +29,7 @@ impl TransactionData {
         self.transactions.insert(transaction.reference, transaction);
     }
 
-    pub fn set_cursor(&mut self, cursor: Option<i64>) {
+    pub fn set_cursor(&mut self, cursor: Option<(String, String)>) {
         self.cursor = cursor;
     }
 
@@ -50,7 +50,7 @@ impl TransactionData {
         for transaction in self.transactions.values() {
             let ticker = &transaction.r#type;
             let amount = transaction.amount;
-            let entry = sum.entry(ticker.clone()).or_insert(0.0);
+            let entry = sum.entry(*ticker).or_insert(0.0);
             *entry += amount;
         }
         sum
@@ -67,7 +67,7 @@ impl TransactionData {
         for transaction in self.transactions.values() {
             let ticker = &transaction.r#type;
             let amount = transaction.amount;
-            let entry = sum.entry(ticker.clone()).or_insert(0.0);
+            let entry = sum.entry(*ticker).or_insert(0.0);
             if now - transaction.date_time <= duration {
                 *entry += amount;
             }

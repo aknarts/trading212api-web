@@ -1,6 +1,5 @@
 use http::Uri;
 use tracing::{error, warn};
-use trading212::error::Error;
 use yew::prelude::*;
 
 use crate::hooks::use_user_context::Handle;
@@ -24,12 +23,7 @@ pub fn dividends_refresher() -> Html {
             move || {
                 let dispatcher = dispatcher.clone();
                 let user_ctx = user_ctx.clone();
-                let cursor = if (*data).dividends.loaded {
-                    None
-                } else {
-                    (*data).dividends.cursor
-                };
-                refresh(dispatcher, user_ctx, cursor);
+                refresh(dispatcher, user_ctx, data.dividends.cursor);
             },
             15000,
         );
@@ -43,8 +37,7 @@ fn refresh(
     cursor: Option<i64>,
 ) {
     wasm_bindgen_futures::spawn_local(async move {
-        let mut retries = 0;
-        while let Some(c) = user_ctx.client() {
+        if let Some(c) = user_ctx.client() {
             match c.get_paid_dividends(Some(50), cursor, None).await {
                 Ok(dividends) => {
                     for dividend in &dividends.items {
@@ -57,8 +50,8 @@ fn refresh(
                         match next.parse::<Uri>() {
                             Ok(uri) => {
                                 if let Some(query) = uri.query() {
-                                    let mut pairs = form_urlencoded::parse(query.as_bytes());
-                                    while let Some((key, value)) = pairs.next() {
+                                    let pairs = form_urlencoded::parse(query.as_bytes());
+                                    for (key, value) in pairs {
                                         if key == "cursor" {
                                             match value.to_string().parse::<i64>() {
                                                 Ok(cursor) => {
@@ -85,21 +78,9 @@ fn refresh(
                         .dispatch(crate::types::data::APIDataAction::SetDividendsCursor(None));
                     dispatcher
                         .dispatch(crate::types::data::APIDataAction::SetDividendsLoaded(true));
-                    break;
                 }
                 Err(e) => {
-                    if let Error::Limit = e {
-                        warn!("Failed to fetch dividends, retrying");
-                        yew::platform::time::sleep(std::time::Duration::from_secs(2)).await;
-                        if retries < 4 {
-                            retries += 1;
-                            continue;
-                        }
-                        warn!("Failed to fetch dividends after 4 retries");
-                        break;
-                    }
                     error!("Failed to fetch dividends: {:?}", e);
-                    break;
                 }
             }
         }

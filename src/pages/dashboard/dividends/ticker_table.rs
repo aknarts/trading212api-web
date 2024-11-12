@@ -1,3 +1,4 @@
+use crate::types::data::APIData;
 use rust_decimal::prelude::FromPrimitive;
 use serde::Serialize;
 use web_sys::{HtmlInputElement, InputEvent};
@@ -5,8 +6,7 @@ use yew::{
     classes, function_component, html, use_context, use_state, Callback, Html, TargetCast,
     UseReducerHandle,
 };
-
-use crate::types::data::APIData;
+use yew_custom_components::pagination::Pagination;
 use yew_custom_components::table::types::{ColumnBuilder, TableData};
 use yew_custom_components::table::{Options, Table};
 
@@ -15,6 +15,8 @@ pub fn dividends_ticker_table() -> Html {
     let api = use_context::<UseReducerHandle<APIData>>().expect("no ctx found");
     let search_term = use_state(|| None::<String>);
     let search = (*search_term).as_ref().cloned();
+    let page = use_state(|| 0usize);
+    let current_page = *page;
 
     let columns = vec![
         ColumnBuilder::new("ticker")
@@ -108,6 +110,22 @@ pub fn dividends_ticker_table() -> Html {
         })
     };
 
+    let pagination_options = yew_custom_components::pagination::Options::default()
+        .show_prev_next(true)
+        .show_first_last(true)
+        .list_classes(vec![String::from("pagination")])
+        .item_classes(vec![String::from("page-item")])
+        .link_classes(vec![String::from("page-link")])
+        .active_item_classes(vec![String::from("active")])
+        .disabled_item_classes(vec![String::from("disabled")]);
+
+    let handle_page = {
+        let page = page.clone();
+        Callback::from(move |id: usize| {
+            page.set(id);
+        })
+    };
+
     html!(<>
             <div class="flex-grow-1 p-2 input-group mb-2">
                 <span class="input-group-text">
@@ -115,7 +133,8 @@ pub fn dividends_ticker_table() -> Html {
                 </span>
                 <input class="form-control" type="text" id="search" placeholder="Search" oninput={oninput_search} />
             </div>
-            <Table<DividendLine> options={options.clone()} search={search.clone()} classes={classes!("table", "table-hover")} columns={columns.clone()} data={table_data.clone()} orderable={true}/>
+            <Table<DividendLine> options={options.clone()} limit={Some(10)} page={current_page} search={search.clone()} classes={classes!("table", "table-hover")} columns={columns.clone()} data={table_data.clone()} orderable={true}/>
+            <Pagination total={table_data.len()} max_pages={5} limit={10} options={pagination_options} on_page={Some(handle_page)}/>
         </>)
 }
 
@@ -158,9 +177,8 @@ impl TableData for DividendLine {
                 }
             },
             "dividends_sum" => {
-                let currency = rusty_money::iso::find(&self.account_currency)
-                    .unwrap_or(rusty_money::iso::EUR)
-                    .clone();
+                let currency = *rusty_money::iso::find(&self.account_currency)
+                    .unwrap_or(rusty_money::iso::EUR);
                 let sum = rusty_money::Money::from_decimal(
                     rust_decimal::Decimal::from_f32(self.dividends_sum).unwrap_or_default(),
                     &currency,
@@ -187,12 +205,12 @@ impl TableData for DividendLine {
         let value = match field_name {
             "ticker" => serde_value::to_value(&self.ticker),
             "instrument" => serde_value::to_value(&self.instrument),
-            "dividends_sum" => serde_value::to_value(&self.dividends_sum),
+            "dividends_sum" => serde_value::to_value(self.dividends_sum),
             "quantity" => match self.quantity {
                 Some(quantity) => serde_value::to_value(quantity),
                 None => serde_value::to_value(0.0),
             },
-            "ac" => serde_value::to_value(&self.ac.unwrap_or_default()),
+            "ac" => serde_value::to_value(self.ac.unwrap_or_default()),
             &_ => serde_value::to_value(""),
         };
         Ok(value.unwrap())

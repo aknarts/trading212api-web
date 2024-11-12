@@ -1,6 +1,5 @@
 use http::Uri;
 use tracing::{error, warn};
-use trading212::error::Error;
 use yew::prelude::*;
 
 use crate::hooks::use_user_context::Handle;
@@ -24,14 +23,7 @@ pub fn transactions_refresher() -> Html {
             move || {
                 let dispatcher = dispatcher.clone();
                 let user_ctx = user_ctx.clone();
-                let cursor = if (*data).transactions.loaded {
-                    None
-                } else {
-                    // FIXME: Pagination does not work yet, falling back to None
-                    //(*data).transactions.cursor
-                    None
-                };
-                refresh(dispatcher, user_ctx, cursor);
+                refresh(dispatcher, user_ctx, data.transactions.cursor.clone());
             },
             17000,
         );
@@ -42,12 +34,24 @@ pub fn transactions_refresher() -> Html {
 fn refresh(
     dispatcher: UseReducerDispatcher<crate::types::data::APIData>,
     user_ctx: Handle,
-    cursor: Option<i64>,
+    cursor: Option<(String, String)>,
 ) {
     wasm_bindgen_futures::spawn_local(async move {
-        let mut retries = 0;
-        while let Some(c) = user_ctx.client() {
-            match c.transaction_list(Some(50), cursor).await {
+        if let Some(c) = user_ctx.client() {
+            match c
+                .transaction_list(
+                    Some(50),
+                    match cursor.clone() {
+                        None => None,
+                        Some(cursor) => Some(cursor.0),
+                    },
+                    match cursor {
+                        None => None,
+                        Some(cursor) => Some(cursor.1),
+                    },
+                )
+                .await
+            {
                 Ok(transactions) => {
                     for transaction in &transactions.items {
                         dispatcher.dispatch(crate::types::data::APIDataAction::AddTransaction(
@@ -59,9 +63,25 @@ fn refresh(
                         match next.parse::<Uri>() {
                             Ok(uri) => {
                                 if let Some(query) = uri.query() {
-                                    let mut pairs = form_urlencoded::parse(query.as_bytes());
-                                    while let Some((_key, _value)) = pairs.next() {
-                                        // FIXME: It is unclear what the cursor is at this point, when Trading212 fixes the docs and the endpoint this needs to get resolved
+                                    let pairs = form_urlencoded::parse(query.as_bytes());
+                                    let mut cursor: Option<String> = None;
+                                    let mut time: Option<String> = None;
+                                    for (key, value) in pairs {
+                                        if key == "cursor" {
+                                            cursor = Some(value.to_string());
+                                        } else if key == "time" {
+                                            time = Some(value.to_string());
+                                        }
+                                    }
+                                    if let Some(cursor) = cursor {
+                                        if let Some(time) = time {
+                                            dispatcher.dispatch(
+                                                crate::types::data::APIDataAction::SetTransactionsCursor(
+                                                    Some((cursor, time)),
+                                                ),
+                                            );
+                                            return;
+                                        }
                                     }
                                 }
                             }
@@ -77,21 +97,15 @@ fn refresh(
                     dispatcher.dispatch(crate::types::data::APIDataAction::SetTransactionsLoaded(
                         true,
                     ));
-                    break;
                 }
                 Err(e) => {
-                    if let Error::Limit = e {
-                        warn!("Failed to fetch transactions, retrying");
-                        yew::platform::time::sleep(std::time::Duration::from_secs(5)).await;
-                        if retries < 2 {
-                            retries += 1;
-                            continue;
-                        }
-                        warn!("Failed to fetch transactions after 2 retries");
-                        break;
-                    }
+                    dispatcher.dispatch(crate::types::data::APIDataAction::SetTransactionsCursor(
+                        None,
+                    ));
+                    dispatcher.dispatch(crate::types::data::APIDataAction::SetTransactionsLoaded(
+                        true,
+                    ));
                     error!("Failed to fetch transactions: {:?}", e);
-                    break;
                 }
             }
         }

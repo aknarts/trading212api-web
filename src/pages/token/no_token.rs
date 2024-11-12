@@ -3,7 +3,7 @@ use yew::prelude::*;
 
 #[function_component(NoToken)]
 pub fn no_token() -> Html {
-    let token = use_state(|| String::new());
+    let token = use_state(String::new);
     let proxy = use_state(|| "https://cors.redoc.ly/".to_string());
     let proxy_enabled = use_state(|| true);
     let live_environment = use_state(|| true);
@@ -60,7 +60,7 @@ pub fn no_token() -> Html {
             e.prevent_default();
             user_ctx.login(
                 (*token).clone(),
-                (*live).clone(),
+                *live,
                 if *proxy_enabled {
                     Some((*proxy).clone())
                 } else {

@@ -18,7 +18,7 @@ pub fn dividends_history_table() -> Html {
     let search_term = use_state(|| None::<String>);
     let search = (*search_term).as_ref().cloned();
     let page = use_state(|| 0usize);
-    let current_page = (*page).clone();
+    let current_page = *page;
 
     let columns = vec![
         ColumnBuilder::new("date")
@@ -200,9 +200,8 @@ impl TableData for DividendLine {
                 }
             },
             "amount" => {
-                let currency = rusty_money::iso::find(&self.account_currency)
-                    .unwrap_or(rusty_money::iso::EUR)
-                    .clone();
+                let currency = *rusty_money::iso::find(&self.account_currency)
+                    .unwrap_or(rusty_money::iso::EUR);
                 let sum = rusty_money::Money::from_decimal(
                     rust_decimal::Decimal::from_f32(self.amount).unwrap_or_default(),
                     &currency,
@@ -214,7 +213,7 @@ impl TableData for DividendLine {
                     html! { <></> }
                 }
                 Some(per_share) => {
-                    html! { <span>{per_share.clone()}</span> }
+                    html! { <span>{per_share}</span> }
                 }
             },
             &_ => html! { <></> },
@@ -226,15 +225,15 @@ impl TableData for DividendLine {
         field_name: &str,
     ) -> yew_custom_components::table::error::Result<serde_value::Value> {
         let value = match field_name {
-            "date" => serde_value::to_value(&self.date),
+            "date" => serde_value::to_value(self.date),
             "ticker" => serde_value::to_value(&self.ticker),
             "instrument" => serde_value::to_value(&self.instrument),
-            "amount" => serde_value::to_value(&self.amount),
+            "amount" => serde_value::to_value(self.amount),
             "quantity" => match self.quantity {
                 Some(quantity) => serde_value::to_value(quantity),
                 None => serde_value::to_value(0.0),
             },
-            "per_share" => serde_value::to_value(&self.per_share.unwrap_or_default()),
+            "per_share" => serde_value::to_value(self.per_share.unwrap_or_default()),
             &_ => serde_value::to_value(""),
         };
         Ok(value.unwrap())

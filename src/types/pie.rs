@@ -22,7 +22,7 @@ impl PiesData {
                 );
             }
             Some(p) => {
-                (*p).data = pie;
+                p.data = pie;
             }
         };
     }
@@ -33,8 +33,8 @@ impl PiesData {
         details: trading212::models::account_bucket_instruments_detailed_response::AccountBucketInstrumentsDetailedResponse,
     ) {
         if let Some(p) = self.pies.get_mut(&id) {
-            (*p).details = Some(details);
-            (*p).updated = OffsetDateTime::now_utc();
+            p.details = Some(details);
+            p.updated = OffsetDateTime::now_utc();
         };
     }
 

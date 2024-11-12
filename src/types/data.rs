@@ -44,7 +44,7 @@ pub enum APIDataAction {
         trading212::models::account_bucket_instruments_detailed_response::AccountBucketInstrumentsDetailedResponse,
     ),
     AddTransaction(trading212::models::history_transaction_item::HistoryTransactionItem),
-    SetTransactionsCursor(Option<i64>),
+    SetTransactionsCursor(Option<(String, String)>),
     SetTransactionsLoaded(bool),
     AddOrder(trading212::models::historical_order::HistoricalOrder),
     SetOrdersCursor(Option<i64>),

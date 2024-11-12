@@ -1,5 +1,4 @@
-use tracing::{error, warn};
-use trading212::error::Error;
+use tracing::error;
 use yew::prelude::*;
 
 use crate::hooks::use_user_context::Handle;
@@ -32,28 +31,15 @@ pub fn instrument_refresher() -> Html {
 
 fn refresh(dispatcher: UseReducerDispatcher<crate::types::data::APIData>, user_ctx: Handle) {
     wasm_bindgen_futures::spawn_local(async move {
-        let mut retries = 0;
-        while let Some(c) = user_ctx.client() {
+        if let Some(c) = user_ctx.client() {
             match c.get_instruments().await {
                 Ok(instruments) => {
                     dispatcher.dispatch(crate::types::data::APIDataAction::SetInstruments(
                         instruments.clone(),
                     ));
-                    break;
                 }
                 Err(e) => {
-                    if let Error::Limit = e {
-                        warn!("Failed to fetch instruments, retrying");
-                        yew::platform::time::sleep(std::time::Duration::from_secs(5)).await;
-                        if retries < 20 {
-                            retries += 1;
-                            continue;
-                        }
-                        warn!("Failed to fetch instruments after 20 retries");
-                        break;
-                    }
                     error!("Failed to fetch instruments: {:?}", e);
-                    break;
                 }
             }
         }

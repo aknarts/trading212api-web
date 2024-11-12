@@ -14,7 +14,7 @@ pub fn dividends_plot() -> Html {
         .sum_by_month()
         .iter()
         .for_each(|(month, sum)| {
-            values.push((month.to_string().clone(), sum.clone()));
+            values.push((month.to_string().clone(), *sum));
         });
     values.sort_by(|a, b| a.0.cmp(&b.0));
     let mut y_sum = Vec::new();
@@ -28,7 +28,7 @@ pub fn dividends_plot() -> Html {
         .map(|(_, sum)| {
             previous_sum += sum;
             y_sum.push(previous_sum);
-            sum.clone()
+            *sum
         })
         .collect::<Vec<f32>>();
     let trace = yew_plotly::plotly::Bar::new(x.clone(), y).name("Monthly");

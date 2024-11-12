@@ -33,17 +33,15 @@ pub fn app() -> Html {
     let ctx = use_state(|| crate::types::theme::Theme { dark: true });
     let data = use_reducer(APIData::default);
 
-    document().and_then(|doc| {
-        doc.document_element().and_then(|el| {
+    if let Some(doc) = document() {
+        if let Some(el) = doc.document_element() {
             if ctx.get_dark() {
                 el.set_attribute("data-bs-theme", "dark").unwrap();
             } else {
                 el.set_attribute("data-bs-theme", "danger").unwrap();
             };
-            Some(())
-        });
-        Some(())
-    });
+        }
+    }
 
     let dispatcher = data.dispatcher();
     yew_hooks::use_interval(

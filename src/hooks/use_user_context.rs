@@ -126,12 +126,12 @@ pub fn use_user_context() -> Handle {
 /// This hook is used to manage user context.
 pub fn use_refresh_user_context() -> UseStateHandle<UserInfo> {
     let storage = use_local_storage::<Token>(TOKEN_KEY.to_string());
-    let token: Option<Token> = (&*storage).clone();
+    let token: Option<Token> = (*storage).clone();
     let client = match token.clone() {
         None => None,
         Some(t) => match match t.proxy {
-            None => trading212::Client::new(&t.token, (&t.target).clone()),
-            Some(p) => trading212::Client::new_with_proxy(&t.token, (&t.target).clone(), &p),
+            None => trading212::Client::new(&t.token, t.target.clone()),
+            Some(p) => trading212::Client::new_with_proxy(&t.token, t.target.clone(), &p),
         } {
             Ok(c) => Some(c),
             Err(e) => {

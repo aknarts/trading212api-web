@@ -95,6 +95,7 @@ fn bg_from_type(event_type: Type) -> String {
         Type::Close => "bg-secondary",
         Type::AfterHoursClose => "bg-secondary",
         Type::Unknown => "bg-light",
+        Type::OvernightOpen => "bg-warning",
     }
     .to_string()
 }

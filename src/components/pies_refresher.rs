@@ -37,12 +37,12 @@ pub fn pies_refresher() -> Html {
                 move || {
                     let dispatcher = dispatcher.clone();
                     let user_ctx = user_ctx.clone();
-                    match (*data).pies.get_incomplete_ids().first() {
+                    match data.pies.get_incomplete_ids().first() {
                         Some(id) => {
                             load_details(dispatcher, user_ctx, *id);
                         }
                         None => {
-                            if let Some(id) = (*data).pies.get_oldest_updated_id() {
+                            if let Some(id) = data.pies.get_oldest_updated_id() {
                                 load_details(dispatcher, user_ctx, id);
                             }
                         }
@@ -57,28 +57,19 @@ pub fn pies_refresher() -> Html {
 
 fn refresh(dispatcher: UseReducerDispatcher<crate::types::data::APIData>, user_ctx: Handle) {
     wasm_bindgen_futures::spawn_local(async move {
-        let mut retries = 0;
-        while let Some(c) = user_ctx.client() {
+        if let Some(c) = user_ctx.client() {
             match c.get_all_pies().await {
                 Ok(pies) => {
                     for pie in pies.iter() {
                         dispatcher.dispatch(crate::types::data::APIDataAction::AddPie(pie.clone()));
                     }
-                    break;
                 }
                 Err(e) => {
                     if let Error::Limit = e {
-                        warn!("Failed to fetch pies, retrying");
-                        yew::platform::time::sleep(std::time::Duration::from_secs(5)).await;
-                        if retries < 5 {
-                            retries += 1;
-                            continue;
-                        }
-                        warn!("Failed to fetch pies after 5 retries");
-                        break;
+                        warn!("Failed to fetch pies, limit");
+                    } else {
+                        error!("Failed to fetch pies: {:?}", e);
                     }
-                    error!("Failed to fetch pies: {:?}", e);
-                    break;
                 }
             }
         }
@@ -91,18 +82,16 @@ fn load_details(
     id: i64,
 ) {
     wasm_bindgen_futures::spawn_local(async move {
-        while let Some(c) = user_ctx.client() {
+        if let Some(c) = user_ctx.client() {
             match c.get_pie(id).await {
                 Ok(pie) => {
                     dispatcher.dispatch(crate::types::data::APIDataAction::AddPieDetails(
                         id,
                         pie.clone(),
                     ));
-                    break;
                 }
                 Err(e) => {
                     error!("Failed to fetch pie details: {:?}", e);
-                    break;
                 }
             }
         }

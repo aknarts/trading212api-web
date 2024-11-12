@@ -97,18 +97,12 @@ pub fn pies_table() -> Html {
                 .settings
                 .name
                 .clone(),
-            icon: pie
-                .details
-                .clone()
-                .unwrap_or_default()
-                .settings
-                .icon
-                .clone(),
+            icon: pie.details.clone().unwrap_or_default().settings.icon,
             cash: pie.data.cash,
             mininvest: 1.0 / pie_mininvest,
             result: pie.data.result.clone(),
             dividend: pie.data.dividend_details.clone(),
-            progress: pie.data.progress.clone(),
+            progress: pie.data.progress,
             account_currency,
         };
         table_data.push(line);
@@ -176,9 +170,8 @@ impl TableData for PieLine {
                 html! { { &self.name } }
             }
             "cash" => {
-                let currency = rusty_money::iso::find(&self.account_currency)
-                    .unwrap_or(rusty_money::iso::EUR)
-                    .clone();
+                let currency = *rusty_money::iso::find(&self.account_currency)
+                    .unwrap_or(rusty_money::iso::EUR);
                 let cash = rusty_money::Money::from_decimal(
                     rust_decimal::Decimal::from_f32(self.cash).unwrap_or_default(),
                     &currency,
@@ -186,9 +179,8 @@ impl TableData for PieLine {
                 html! { { cash.to_string() } }
             }
             "ppl" => {
-                let currency = rusty_money::iso::find(&self.account_currency)
-                    .unwrap_or(rusty_money::iso::EUR)
-                    .clone();
+                let currency = *rusty_money::iso::find(&self.account_currency)
+                    .unwrap_or(rusty_money::iso::EUR);
                 let ppl = rusty_money::Money::from_decimal(
                     rust_decimal::Decimal::from_f32(self.result.result).unwrap_or_default(),
                     &currency,
@@ -202,9 +194,8 @@ impl TableData for PieLine {
             }
             "value" => html! { { &self.result.value } },
             "dividends" => {
-                let currency = rusty_money::iso::find(&self.account_currency)
-                    .unwrap_or(rusty_money::iso::EUR)
-                    .clone();
+                let currency = *rusty_money::iso::find(&self.account_currency)
+                    .unwrap_or(rusty_money::iso::EUR);
                 let dividends = rusty_money::Money::from_decimal(
                     rust_decimal::Decimal::from_f32(self.dividend.gained).unwrap_or_default(),
                     &currency,
@@ -212,9 +203,8 @@ impl TableData for PieLine {
                 html! { { dividends.to_string() } }
             }
             "mininvest" => {
-                let currency = rusty_money::iso::find(&self.account_currency)
-                    .unwrap_or(rusty_money::iso::EUR)
-                    .clone();
+                let currency = *rusty_money::iso::find(&self.account_currency)
+                    .unwrap_or(rusty_money::iso::EUR);
                 let mininvest = rusty_money::Money::from_decimal(
                     rust_decimal::Decimal::from_f32(self.mininvest).unwrap_or_default(),
                     &currency,
@@ -240,12 +230,12 @@ impl TableData for PieLine {
     ) -> yew_custom_components::table::error::Result<serde_value::Value> {
         let value = match field_name {
             "name" => serde_value::to_value(&self.name),
-            "cash" => serde_value::to_value(&self.cash),
-            "ppl" => serde_value::to_value(&self.result.result),
-            "value" => serde_value::to_value(&self.result.value),
-            "dividends" => serde_value::to_value(&self.dividend.gained),
-            "mininvest" => serde_value::to_value(&self.mininvest),
-            "progress" => serde_value::to_value(&self.progress.unwrap_or_default()),
+            "cash" => serde_value::to_value(self.cash),
+            "ppl" => serde_value::to_value(self.result.result),
+            "value" => serde_value::to_value(self.result.value),
+            "dividends" => serde_value::to_value(self.dividend.gained),
+            "mininvest" => serde_value::to_value(self.mininvest),
+            "progress" => serde_value::to_value(self.progress.unwrap_or_default()),
             &_ => serde_value::to_value(""),
         };
         Ok(value.unwrap())

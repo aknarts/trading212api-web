@@ -1,3 +1,4 @@
+use crate::types::data::APIData;
 use rust_decimal::prelude::FromPrimitive;
 use serde::Serialize;
 use web_sys::{HtmlInputElement, InputEvent};
@@ -5,8 +6,7 @@ use yew::{
     classes, function_component, html, use_context, use_state, Callback, Html, TargetCast,
     UseReducerHandle,
 };
-
-use crate::types::data::APIData;
+use yew_custom_components::pagination::Pagination;
 use yew_custom_components::table::types::{ColumnBuilder, TableData};
 use yew_custom_components::table::{Options, Table};
 
@@ -15,6 +15,8 @@ pub fn positions_table() -> Html {
     let api = use_context::<UseReducerHandle<APIData>>().expect("no ctx found");
     let search_term = use_state(|| None::<String>);
     let search = (*search_term).as_ref().cloned();
+    let page = use_state(|| 0usize);
+    let current_page = *page;
 
     let columns = vec![
         ColumnBuilder::new("ticker")
@@ -108,6 +110,22 @@ pub fn positions_table() -> Html {
         })
     };
 
+    let pagination_options = yew_custom_components::pagination::Options::default()
+        .show_prev_next(true)
+        .show_first_last(true)
+        .list_classes(vec![String::from("pagination")])
+        .item_classes(vec![String::from("page-item")])
+        .link_classes(vec![String::from("page-link")])
+        .active_item_classes(vec![String::from("active")])
+        .disabled_item_classes(vec![String::from("disabled")]);
+
+    let handle_page = {
+        let page = page.clone();
+        Callback::from(move |id: usize| {
+            page.set(id);
+        })
+    };
+
     html!(<>
             <div class="flex-grow-1 p-2 input-group mb-2">
                 <span class="input-group-text">
@@ -115,7 +133,8 @@ pub fn positions_table() -> Html {
                 </span>
                 <input class="form-control" type="text" id="search" placeholder="Search" oninput={oninput_search} />
             </div>
-            <Table<PositionLine> {options} {search} classes={classes!("table", "table-hover")} columns={columns} data={table_data} orderable={true}/>
+            <Table<PositionLine> {options} {search} limit={Some(10)} page={current_page} classes={classes!("table", "table-hover")} columns={columns} data={table_data.clone()} orderable={true}/>
+            <Pagination total={table_data.len()} max_pages={5} limit={10} options={pagination_options} on_page={Some(handle_page)}/>
         </>)
 }
 
@@ -170,9 +189,8 @@ impl TableData for PositionLine {
                 html! { { instrument } }
             }
             "ppl" => {
-                let currency = rusty_money::iso::find(&self.account_currency)
-                    .unwrap_or(rusty_money::iso::EUR)
-                    .clone();
+                let currency = *rusty_money::iso::find(&self.account_currency)
+                    .unwrap_or(rusty_money::iso::EUR);
                 let ppl = rusty_money::Money::from_decimal(
                     rust_decimal::Decimal::from_f32(self.ppl.ppl).unwrap_or_default(),
                     &currency,
@@ -187,10 +205,10 @@ impl TableData for PositionLine {
             "quantity" => html! { { &self.quantity.unwrap_or_default() } },
             "avg_price" => {
                 let currency = match &self.instrument {
-                    None => rusty_money::iso::EUR.clone(),
-                    Some(i) => rusty_money::iso::find(&i.currency_code)
-                        .unwrap_or(rusty_money::iso::EUR)
-                        .clone(),
+                    None => *rusty_money::iso::EUR,
+                    Some(i) => {
+                        *rusty_money::iso::find(&i.currency_code).unwrap_or(rusty_money::iso::EUR)
+                    }
                 };
                 let avg_price = rusty_money::Money::from_decimal(
                     rust_decimal::Decimal::from_f32(self.avg_price).unwrap_or_default(),
@@ -200,10 +218,10 @@ impl TableData for PositionLine {
             }
             "price" => {
                 let currency = match &self.instrument {
-                    None => rusty_money::iso::EUR.clone(),
-                    Some(i) => rusty_money::iso::find(&i.currency_code)
-                        .unwrap_or(rusty_money::iso::EUR)
-                        .clone(),
+                    None => *rusty_money::iso::EUR,
+                    Some(i) => {
+                        *rusty_money::iso::find(&i.currency_code).unwrap_or(rusty_money::iso::EUR)
+                    }
                 };
                 let price = rusty_money::Money::from_decimal(
                     rust_decimal::Decimal::from_f32(self.price).unwrap_or_default(),
@@ -235,11 +253,11 @@ impl TableData for PositionLine {
             "instrument" => {
                 serde_value::to_value(&self.instrument.clone().unwrap_or_default().name)
             }
-            "ppl" => serde_value::to_value(&self.ppl.ppl.to_string()),
-            "quantity" => serde_value::to_value(&self.quantity),
-            "avg_price" => serde_value::to_value(&self.avg_price),
-            "price" => serde_value::to_value(&self.price),
-            "ac" => serde_value::to_value(&self.ac),
+            "ppl" => serde_value::to_value(self.ppl.ppl.to_string()),
+            "quantity" => serde_value::to_value(self.quantity),
+            "avg_price" => serde_value::to_value(self.avg_price),
+            "price" => serde_value::to_value(self.price),
+            "ac" => serde_value::to_value(self.ac),
             &_ => serde_value::to_value(""),
         };
         Ok(value.unwrap())

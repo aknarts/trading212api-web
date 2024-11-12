@@ -24,10 +24,10 @@ pub fn orderss_refresher() -> Html {
             move || {
                 let dispatcher = dispatcher.clone();
                 let user_ctx = user_ctx.clone();
-                let cursor = if (*data).orders.loaded {
+                let cursor = if data.orders.loaded {
                     None
                 } else {
-                    (*data).orders.cursor
+                    data.orders.cursor
                 };
                 refresh(dispatcher, user_ctx, cursor);
             },
@@ -56,8 +56,8 @@ fn refresh(
                         match next.parse::<Uri>() {
                             Ok(uri) => {
                                 if let Some(query) = uri.query() {
-                                    let mut pairs = form_urlencoded::parse(query.as_bytes());
-                                    while let Some((key, value)) = pairs.next() {
+                                    let pairs = form_urlencoded::parse(query.as_bytes());
+                                    for (key, value) in pairs {
                                         if key == "cursor" {
                                             match value.to_string().parse::<i64>() {
                                                 Ok(cursor) => {

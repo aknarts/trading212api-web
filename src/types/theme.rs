@@ -41,7 +41,7 @@ impl Theme {
 
     pub fn get_dark(&self) -> bool {
         match DARK.write() {
-            Ok(mut r) => match r.clone() {
+            Ok(mut r) => match *r {
                 None => {
                     *r = Some(true);
                     true
