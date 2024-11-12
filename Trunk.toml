@@ -2,3 +2,6 @@ trunk-version = "*"
 
 [build]
 minify = "on_release"
+
+[tools]
+wasm_opt = "version_120_b"
